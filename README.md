@@ -2,7 +2,17 @@
 
 This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring.
 
-TODO images
+## Typescript
+
+![Typescript](./screenshots/typescript.png)
+
+## Go
+
+![Go](./screenshots/go.png)
+
+## C++
+
+![Go](./screenshots/cpp.png)
 
 ## Implementation
 
@@ -11,4 +21,4 @@ On each edit, `./lib/extension.ts` runs the tree-sitter incremental parser, and 
 
 ## Customizing colors
 
-The colors are defined in package.json (`treeSitterField`, `treeSitterType`), and are [themable](https://code.visualstudio.com/api/extension-guides/color-theme).
+The colors are defined in package.json (`treeSitterField`, `treeSitterType`, `treeSitterFunction`), and are [themable](https://code.visualstudio.com/api/extension-guides/color-theme).

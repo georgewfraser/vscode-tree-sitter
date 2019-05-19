@@ -104,12 +104,19 @@ export function activate(context: VS.ExtensionContext) {
 					if (x.parent == null) return
 					switch (x.parent.type) {
 						case 'function':
-						case 'destructor_name':
 						case 'function_declarator':
 						case 'function_declaration':
 								const r = range(x)
 								functions.push(r)
 								return
+						case 'scoped_identifier':
+							if (x.parent.parent == null) return
+							switch (x.parent.parent.type) {
+								case 'function_declarator':
+										const r = range(x)
+										functions.push(r)
+										return
+							}
 					}
 					return
 				case 'primitive_type':
