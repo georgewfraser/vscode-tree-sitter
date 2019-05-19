@@ -1,6 +1,6 @@
 # Tree Sitter for VSCode
 
-This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring.
+This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring. Examples with tree-sitter coloring on the right:
 
 ## Typescript
 
