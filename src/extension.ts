@@ -34,7 +34,8 @@ export function activate(context: VS.ExtensionContext) {
 			colorUri(edit.document.uri)
 		}
 	}
-	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent): Parser.Tree {
+	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent) {
+		if (edit.contentChanges.length == 0) return;
 		const old = trees[edit.document.uri.toString()]
 		const startIndex = Math.min(...edit.contentChanges.map(getStartIndex))
 		const oldEndIndex = Math.max(...edit.contentChanges.map(getOldEndIndex))
@@ -48,7 +49,6 @@ export function activate(context: VS.ExtensionContext) {
 		old.edit({startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition})
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
-		return t
 	}
 	function getStartIndex(edit: VS.TextDocumentContentChangeEvent): number {
 		return edit.rangeOffset
@@ -85,8 +85,15 @@ export function activate(context: VS.ExtensionContext) {
 		const t = trees[editor.document.uri.toString()]
 		var types: VS.Range[] = []
 		var fields: VS.Range[] = []
-		// TODO don't color the entire document, just do the parts that are visible
+		function isVisible(x: Parser.SyntaxNode) {
+			for (let visible of editor.visibleRanges) {
+				const overlap = x.startPosition.row <= visible.end.line && visible.start.line <= x.endPosition.row;
+				if (overlap) return true;
+			}
+			return false;
+		}
 		function scan(x: Parser.SyntaxNode) {
+			if (!isVisible(x)) return;
 			switch (x.type) {
 				case 'type_identifier':
 				case 'predefined_type':{
@@ -117,6 +124,7 @@ export function activate(context: VS.ExtensionContext) {
 	context.subscriptions.push(VS.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
 	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
+	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
 }
 
 // this method is called when your extension is deactivated
