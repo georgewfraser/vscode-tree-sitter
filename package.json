@@ -1,6 +1,6 @@
 {
 	"name": "vscode-tree-sitter",
-	"displayName": "vscode-tree-sitter",
+	"displayName": "Tree Sitter",
 	"description": "Accurate syntax coloring with tree-sitter for VSCode",
 	"version": "0.0.1",
 	"engines": {
@@ -10,15 +10,35 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onLanguage:go"
+		"onLanguage:go"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-        "grammars": [
+		"grammars": [
+			{
+				"language": "go",
+				"scopeName": "source.go",
+				"path": "./src/go.tmLanguage.json"
+			}
+		],
+        "colors": [
             {
-                "language": "go",
-                "scopeName": "source.go",
-                "path": "./src/go.tmLanguage.json"
+                "id": "treeSitterField",
+                "description": "Color for fields",
+                "defaults": {
+                    "dark": "#9CDCFE",
+                    "light": "#001080",
+                    "highContrast": "#4EC9B0"
+                }
+            },
+            {
+                "id": "treeSitterType",
+                "description": "Color for fields",
+                "defaults": {
+                    "dark": "#4EC9B0",
+                    "light": "#267f99",
+                    "highContrast": "#4EC9B0"
+                }
             }
         ]
 	},
@@ -30,10 +50,15 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
-		"typescript": "^3.1.4",
-		"vscode": "^1.1.25",
-		"tslint": "^5.8.0",
+		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
-		"@types/mocha": "^2.2.42"
+		"electron-rebuild": "^1.8.4",
+		"tslint": "^5.8.0",
+		"typescript": "^3.1.4",
+		"vscode": "^1.1.25"
+	},
+	"dependencies": {
+		"tree-sitter": "^0.15.1",
+		"tree-sitter-go": "^0.13.3"
 	}
 }
