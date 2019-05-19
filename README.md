@@ -6,6 +6,10 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ![Go](./screenshots/go.png)
 
+## Rust
+
+![Rust](./screenshots/rust.png)
+
 ## C++
 
 ![C++](./screenshots/cpp.png)
