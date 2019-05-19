@@ -71,8 +71,7 @@
 		},
 		{
 			"comment": "Built-in functions",
-			"match": "\\b(append|cap|close|complex|copy|delete|imag|len|make|new|panic|print|println|real|recover)\\b(?=\\()",
-			"name": "support.function.builtin.go"
+			"match": "\\b(append|cap|close|complex|copy|delete|imag|len|make|new|panic|print|println|real|recover)\\b(?=\\()"
 		},
 		{
 			"comment": "Function declarations",
@@ -117,10 +116,6 @@
 						{
 							"match": "\\d\\w*",
 							"name": "invalid.illegal.identifier.go"
-						},
-						{
-							"match": "\\w+",
-							"name": "support.function.go"
 						}
 					]
 				}
@@ -172,10 +167,6 @@
 				{
 					"match": "\\d\\w*",
 					"name": "invalid.illegal.identifier.go"
-				},
-				{
-					"match": "\\w+",
-					"name": "entity.name.type.go"
 				}
 			]
 		},
@@ -218,7 +209,6 @@
 						},
 						{
 							"match": "\\w+(?:\\.\\w+)*",
-							"name": "variable.other.assignment.go",
 							"captures": {
 								"0": {
 									"patterns": [
@@ -246,10 +236,6 @@
 							"name": "invalid.illegal.identifier.go"
 						},
 						{
-							"match": "\\w+",
-							"name": "variable.other.assignment.go"
-						},
-						{
 							"include": "#delimiters"
 						}
 					]
@@ -275,9 +261,6 @@
 		},
 		{
 			"include": "#runes"
-		},
-		{
-			"include": "#storage_types"
 		}
 	],
 	"repository": {
@@ -460,38 +443,6 @@
 				}
 			]
 		},
-		"storage_types": {
-			"patterns": [
-				{
-					"match": "\\bbool\\b",
-					"name": "storage.type.boolean.go"
-				},
-				{
-					"match": "\\bbyte\\b",
-					"name": "storage.type.byte.go"
-				},
-				{
-					"match": "\\berror\\b",
-					"name": "storage.type.error.go"
-				},
-				{
-					"match": "\\b(complex(64|128)|float(32|64)|u?int(8|16|32|64)?)\\b",
-					"name": "storage.type.numeric.go"
-				},
-				{
-					"match": "\\brune\\b",
-					"name": "storage.type.rune.go"
-				},
-				{
-					"match": "\\bstring\\b",
-					"name": "storage.type.string.go"
-				},
-				{
-					"match": "\\buintptr\\b",
-					"name": "storage.type.uintptr.go"
-				}
-			]
-		},
 		"string_escaped_char": {
 			"patterns": [
 				{
@@ -524,10 +475,6 @@
 									"name": "invalid.illegal.identifier.go"
 								},
 								{
-									"match": "\\w+",
-									"name": "variable.other.assignment.go"
-								},
-								{
 									"include": "#delimiters"
 								}
 							]
@@ -549,10 +496,6 @@
 								{
 									"match": "\\d\\w*",
 									"name": "invalid.illegal.identifier.go"
-								},
-								{
-									"match": "\\w+",
-									"name": "variable.other.declaration.go"
 								},
 								{
 									"include": "#delimiters"
