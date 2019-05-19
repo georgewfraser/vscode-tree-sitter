@@ -10,7 +10,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:go"
+		"onLanguage:go",
+		"onLanguage:typescript"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -19,28 +20,33 @@
 				"language": "go",
 				"scopeName": "source.go",
 				"path": "./src/go.tmLanguage.json"
+			},
+			{
+				"language": "typescript",
+				"scopeName": "source.ts",
+				"path": "./src/typescript.tmLanguage.json"
 			}
 		],
-        "colors": [
-            {
-                "id": "treeSitterField",
-                "description": "Color for fields",
-                "defaults": {
-                    "dark": "#9CDCFE",
-                    "light": "#001080",
-                    "highContrast": "#4EC9B0"
-                }
-            },
-            {
-                "id": "treeSitterType",
-                "description": "Color for fields",
-                "defaults": {
-                    "dark": "#4EC9B0",
-                    "light": "#267f99",
-                    "highContrast": "#4EC9B0"
-                }
-            }
-        ]
+		"colors": [
+			{
+				"id": "treeSitterField",
+				"description": "Color for fields",
+				"defaults": {
+					"dark": "#9CDCFE",
+					"light": "#001080",
+					"highContrast": "#4EC9B0"
+				}
+			},
+			{
+				"id": "treeSitterType",
+				"description": "Color for fields",
+				"defaults": {
+					"dark": "#4EC9B0",
+					"light": "#267f99",
+					"highContrast": "#4EC9B0"
+				}
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -59,6 +65,7 @@
 	},
 	"dependencies": {
 		"tree-sitter": "^0.15.1",
-		"tree-sitter-go": "^0.13.3"
+		"tree-sitter-go": "^0.13.3",
+		"tree-sitter-typescript": "^0.13.6"
 	}
 }
