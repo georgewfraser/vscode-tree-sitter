@@ -2,10 +2,6 @@
 
 This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring. Examples with tree-sitter coloring on the right:
 
-## Typescript
-
-![Typescript](./screenshots/typescript.png)
-
 ## Go
 
 ![Go](./screenshots/go.png)
@@ -13,6 +9,10 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 ## C++
 
 ![Go](./screenshots/cpp.png)
+
+## Typescript
+
+![Typescript](./screenshots/typescript.png)
 
 ## Implementation
 
