@@ -10,16 +10,17 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+        "onLanguage:go"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
-			}
-		]
+        "grammars": [
+            {
+                "language": "go",
+                "scopeName": "source.go",
+                "path": "./src/go.tmLanguage.json"
+            }
+        ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
