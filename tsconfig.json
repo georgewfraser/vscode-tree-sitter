@@ -17,6 +17,7 @@
 		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
 	},
 	"exclude": [
+		"examples",
 		"node_modules",
 		".vscode-test"
 	]

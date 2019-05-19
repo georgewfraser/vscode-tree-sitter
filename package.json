@@ -1,7 +1,7 @@
 {
 	"name": "vscode-tree-sitter",
 	"displayName": "Tree Sitter",
-	"description": "Accurate syntax coloring with tree-sitter for VSCode",
+	"description": "Accurate syntax coloring with tree-sitter",
 	"icon": "tree-sitter-small.png",
 	"version": "0.0.1",
 	"publisher": "georgewfraser",
@@ -60,7 +60,7 @@
 			},
 			{
 				"id": "treeSitterFunction",
-				"description": "Color for types",
+				"description": "Color for functions",
 				"defaults": {
 					"dark": "#DCDCAA",
 					"light": "#795E26",

@@ -105,6 +105,7 @@ export function activate(context: VS.ExtensionContext) {
 				case 'identifier':
 					if (x.parent == null) return
 					switch (x.parent.type) {
+						case 'function':
 						case 'destructor_name':
 						case 'function_declarator':
 						case 'function_declaration':
