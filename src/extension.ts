@@ -38,7 +38,7 @@ export function activate(context: VS.ExtensionContext) {
 		}
 	}
 	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent) {
-		if (edit.contentChanges.length == 0) return;
+		if (edit.contentChanges.length == 0) return
 		const old = trees[edit.document.uri.toString()]
 		const startIndex = Math.min(...edit.contentChanges.map(getStartIndex))
 		const oldEndIndex = Math.max(...edit.contentChanges.map(getOldEndIndex))
@@ -77,6 +77,9 @@ export function activate(context: VS.ExtensionContext) {
 	const fieldStyle = VS.window.createTextEditorDecorationType({
         color: new VS.ThemeColor('treeSitterField')
 	})
+	const functionStyle = VS.window.createTextEditorDecorationType({
+        color: new VS.ThemeColor('treeSitterFunction')
+	})
 	function colorUri(uri: VS.Uri) {
 		for (let editor of VS.window.visibleTextEditors) {
 			if (editor.document.uri == uri) {
@@ -88,16 +91,26 @@ export function activate(context: VS.ExtensionContext) {
 		const t = trees[editor.document.uri.toString()]
 		var types: VS.Range[] = []
 		var fields: VS.Range[] = []
+		var functions: VS.Range[] = []
 		function isVisible(x: Parser.SyntaxNode) {
 			for (let visible of editor.visibleRanges) {
-				const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row;
-				if (overlap) return true;
+				const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
+				if (overlap) return true
 			}
-			return false;
+			return false
 		}
 		function scan(x: Parser.SyntaxNode) {
-			if (!isVisible(x)) return;
+			if (!isVisible(x)) return
 			switch (x.type) {
+				case 'identifier':
+					if (x.parent == null) return
+					switch (x.parent.type) {
+						case 'function_declaration':
+								const r = range(x)
+								functions.push(r)
+								return
+					}
+					return
 				case 'primitive_type':
 				case 'type_identifier':
 				case 'predefined_type':{
@@ -119,7 +132,8 @@ export function activate(context: VS.ExtensionContext) {
 		scan(t.rootNode)
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
-		// console.log(t.rootNode.toString())
+		editor.setDecorations(functionStyle, functions)
+		console.log(t.rootNode.toString())
 	}
 	function range(x: Parser.SyntaxNode): VS.Range {
 		return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)

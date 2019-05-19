@@ -63,6 +63,15 @@
 					"light": "#267f99",
 					"highContrast": "#4EC9B0"
 				}
+			},
+			{
+				"id": "treeSitterFunction",
+				"description": "Color for types",
+				"defaults": {
+					"dark": "#DCDCAA",
+					"light": "#795E26",
+					"highContrast": "#DCDCAA"
+				}
 			}
 		]
 	},
