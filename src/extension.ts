@@ -6,9 +6,7 @@ import * as Parser from 'tree-sitter'
 const languages: {[id: string]: Parser} = {
 	'go': createParser('tree-sitter-go'),
 	'typescript': createParser('tree-sitter-typescript'),
-	// TODO function declaration names aren't coloring in c and c++
 	'cpp': createParser('tree-sitter-cpp'),
-	'c': createParser('tree-sitter-c'),
 }
 
 function createParser(module: string) {
