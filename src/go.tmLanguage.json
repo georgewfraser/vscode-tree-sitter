@@ -15,17 +15,7 @@
 		{
 			"comment": "Interpreted string literals",
 			"begin": "\"",
-			"beginCaptures": {
-				"0": {
-					"name": "punctuation.definition.string.begin.go"
-				}
-			},
 			"end": "\"",
-			"endCaptures": {
-				"0": {
-					"name": "punctuation.definition.string.end.go"
-				}
-			},
 			"name": "string.quoted.double.go",
 			"patterns": [
 				{
@@ -39,17 +29,7 @@
 		{
 			"comment": "Raw string literals",
 			"begin": "`",
-			"beginCaptures": {
-				"0": {
-					"name": "punctuation.definition.string.begin.go"
-				}
-			},
 			"end": "`",
-			"endCaptures": {
-				"0": {
-					"name": "punctuation.definition.string.end.go"
-				}
-			},
 			"name": "string.quoted.raw.go",
 			"patterns": [
 				{
@@ -305,17 +285,7 @@
 			"patterns": [
 				{
 					"begin": "{",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.begin.bracket.curly.go"
-						}
-					},
 					"end": "}",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.definition.end.bracket.curly.go"
-						}
-					},
 					"patterns": [
 						{
 							"include": "$self"
@@ -324,26 +294,12 @@
 				},
 				{
 					"begin": "\\(",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.begin.bracket.round.go"
-						}
-					},
 					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.definition.end.bracket.round.go"
-						}
-					},
 					"patterns": [
 						{
 							"include": "$self"
 						}
 					]
-				},
-				{
-					"match": "\\[|\\]",
-					"name": "punctuation.definition.bracket.square.go"
 				}
 			]
 		},
@@ -352,20 +308,10 @@
 				{
 					"begin": "/\\*",
 					"end": "\\*/",
-					"captures": {
-						"0": {
-							"name": "punctuation.definition.comment.go"
-						}
-					},
 					"name": "comment.block.go"
 				},
 				{
 					"begin": "//",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.comment.go"
-						}
-					},
 					"end": "$",
 					"name": "comment.line.double-slash.go"
 				}
@@ -398,30 +344,14 @@
 						"2": {
 							"name": "string.quoted.double.go"
 						},
-						"3": {
-							"name": "punctuation.definition.string.begin.go"
-						},
 						"4": {
 							"name": "entity.name.import.go"
-						},
-						"5": {
-							"name": "punctuation.definition.string.end.go"
 						}
 					}
 				},
 				{
 					"begin": "\\(",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.imports.begin.bracket.round.go"
-						}
-					},
 					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.definition.imports.end.bracket.round.go"
-						}
-					},
 					"patterns": [
 						{
 							"include": "#comments"
@@ -515,17 +445,7 @@
 			"patterns": [
 				{
 					"begin": "'",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.string.begin.go"
-						}
-					},
 					"end": "'",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.definition.string.end.go"
-						}
-					},
 					"name": "string.quoted.rune.go",
 					"patterns": [
 						{
@@ -650,17 +570,7 @@
 				},
 				{
 					"begin": "\\(",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.definition.variables.begin.bracket.round.go"
-						}
-					},
 					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.definition.variables.end.bracket.round.go"
-						}
-					},
 					"patterns": [
 						{
 							"include": "$self"
