@@ -25,7 +25,8 @@
 			"name": "keyword.control.c"
 		},
 		{
-			"include": "#storage_types"
+			"match": ";",
+			"name": "keyword.semi.c"
 		},
 		{
 			"match": "\\b(const|extern|register|restrict|static|volatile|inline)\\b",
@@ -34,14 +35,6 @@
 		{
 			"match": "\\bk[A-Z]\\w*\\b",
 			"name": "constant.other.variable.mac-classic.c"
-		},
-		{
-			"match": "\\bg[A-Z]\\w*\\b",
-			"name": "variable.other.readwrite.global.mac-classic.c"
-		},
-		{
-			"match": "\\bs[A-Z]\\w*\\b",
-			"name": "variable.other.readwrite.static.mac-classic.c"
 		},
 		{
 			"match": "\\b(NULL|true|false|TRUE|FALSE)\\b",
@@ -60,19 +53,13 @@
 			"begin": "(?x)\n^\\s* ((\\#)\\s*define) \\s+    # define\n((?<id>[a-zA-Z_$][\\w$]*))      # macro name\n(?:\n  (\\()\n    (\n      \\s* \\g<id> \\s*         # first argument\n      ((,) \\s* \\g<id> \\s*)*  # additional arguments\n      (?:\\.\\.\\.)?            # varargs ellipsis?\n    )\n  (\\))\n)?",
 			"beginCaptures": {
 				"1": {
-					"name": "keyword.control.directive.define.c"
+					"name": "keyword.other.directive.define.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
 				},
-				"3": {
-					"name": "entity.name.function.preprocessor.c"
-				},
 				"5": {
 					"name": "punctuation.definition.parameters.begin.c"
-				},
-				"6": {
-					"name": "variable.parameter.preprocessor.c"
 				},
 				"8": {
 					"name": "punctuation.separator.parameters.c"
@@ -93,7 +80,7 @@
 			"begin": "^\\s*((#)\\s*(error|warning))\\b",
 			"captures": {
 				"1": {
-					"name": "keyword.control.directive.diagnostic.$3.c"
+					"name": "keyword.other.directive.diagnostic.$3.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -117,7 +104,7 @@
 			"begin": "^\\s*((#)\\s*(include(?:_next)?|import))\\b\\s*",
 			"beginCaptures": {
 				"1": {
-					"name": "keyword.control.directive.$3.c"
+					"name": "keyword.other.directive.$3.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -168,7 +155,7 @@
 			"begin": "^\\s*((#)\\s*line)\\b",
 			"beginCaptures": {
 				"1": {
-					"name": "keyword.control.directive.line.c"
+					"name": "keyword.other.directive.line.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -192,7 +179,7 @@
 			"begin": "^\\s*(?:((#)\\s*undef))\\b",
 			"beginCaptures": {
 				"1": {
-					"name": "keyword.control.directive.undef.c"
+					"name": "keyword.other.directive.undef.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -202,10 +189,6 @@
 			"name": "meta.preprocessor.c",
 			"patterns": [
 				{
-					"match": "[a-zA-Z_$][\\w$]*",
-					"name": "entity.name.function.preprocessor.c"
-				},
-				{
 					"include": "#line_continuation_character"
 				}
 			]
@@ -214,7 +197,7 @@
 			"begin": "^\\s*(?:((#)\\s*pragma))\\b",
 			"beginCaptures": {
 				"1": {
-					"name": "keyword.control.directive.pragma.c"
+					"name": "keyword.other.directive.pragma.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -239,44 +222,14 @@
 			]
 		},
 		{
-			"match": "\\b(u_char|u_short|u_int|u_long|ushort|uint|u_quad_t|quad_t|qaddr_t|caddr_t|daddr_t|div_t|dev_t|fixpt_t|blkcnt_t|blksize_t|gid_t|in_addr_t|in_port_t|ino_t|key_t|mode_t|nlink_t|id_t|pid_t|off_t|segsz_t|swblk_t|uid_t|id_t|clock_t|size_t|ssize_t|time_t|useconds_t|suseconds_t)\\b",
-			"name": "support.type.sys-types.c"
-		},
-		{
-			"match": "\\b(pthread_attr_t|pthread_cond_t|pthread_condattr_t|pthread_mutex_t|pthread_mutexattr_t|pthread_once_t|pthread_rwlock_t|pthread_rwlockattr_t|pthread_t|pthread_key_t)\\b",
-			"name": "support.type.pthread.c"
-		},
-		{
-			"match": "(?x) \\b\n(int8_t|int16_t|int32_t|int64_t|uint8_t|uint16_t|uint32_t|uint64_t|int_least8_t\n|int_least16_t|int_least32_t|int_least64_t|uint_least8_t|uint_least16_t|uint_least32_t\n|uint_least64_t|int_fast8_t|int_fast16_t|int_fast32_t|int_fast64_t|uint_fast8_t\n|uint_fast16_t|uint_fast32_t|uint_fast64_t|intptr_t|uintptr_t|intmax_t|intmax_t\n|uintmax_t|uintmax_t)\n\\b",
-			"name": "support.type.stdint.c"
-		},
-		{
 			"match": "\\b(noErr|kNilOptions|kInvalidID|kVariableLengthArray)\\b",
 			"name": "support.constant.mac-classic.c"
-		},
-		{
-			"match": "(?x) \\b\n(AbsoluteTime|Boolean|Byte|ByteCount|ByteOffset|BytePtr|CompTimeValue|ConstLogicalAddress|ConstStrFileNameParam\n|ConstStringPtr|Duration|Fixed|FixedPtr|Float32|Float32Point|Float64|Float80|Float96|FourCharCode|Fract|FractPtr\n|Handle|ItemCount|LogicalAddress|OptionBits|OSErr|OSStatus|OSType|OSTypePtr|PhysicalAddress|ProcessSerialNumber\n|ProcessSerialNumberPtr|ProcHandle|Ptr|ResType|ResTypePtr|ShortFixed|ShortFixedPtr|SignedByte|SInt16|SInt32|SInt64\n|SInt8|Size|StrFileName|StringHandle|StringPtr|TimeBase|TimeRecord|TimeScale|TimeValue|TimeValue64|UInt16|UInt32\n|UInt64|UInt8|UniChar|UniCharCount|UniCharCountPtr|UniCharPtr|UnicodeScalarValue|UniversalProcHandle|UniversalProcPtr\n|UnsignedFixed|UnsignedFixedPtr|UnsignedWide|UTF16Char|UTF32Char|UTF8Char)\n\\b",
-			"name": "support.type.mac-classic.c"
-		},
-		{
-			"match": "\\b([A-Za-z0-9_]+_t)\\b",
-			"name": "support.type.posix-reserved.c"
 		},
 		{
 			"include": "#block"
 		},
 		{
 			"include": "#parens"
-		},
-		{
-			"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate|asm|__asm__|auto|bool|_Bool|char|_Complex|double|enum|float|_Imaginary|int|long|short|signed|struct|typedef|union|unsigned|void)\\s*\\()\n(?=\n  (?:[A-Za-z_][A-Za-z0-9_]*+|::)++\\s*\\(  # actual name\n  |\n  (?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\\s*\\(\n)",
-			"end": "(?<=\\))(?!\\w)",
-			"name": "meta.function.c",
-			"patterns": [
-				{
-					"include": "#function-innards"
-				}
-			]
 		},
 		{
 			"include": "#line_continuation_character"
@@ -309,9 +262,6 @@
 				},
 				"3": {
 					"name": "punctuation.separator.pointer-access.c"
-				},
-				"4": {
-					"name": "variable.other.member.c"
 				}
 			},
 			"match": "((\\.)|(->))\\s*(([a-zA-Z_][a-zA-Z_0-9]*)\\b(?!\\s*\\())?"
@@ -358,13 +308,7 @@
 					"include": "#libc"
 				},
 				{
-					"include": "#c_function_call"
-				},
-				{
 					"captures": {
-						"1": {
-							"name": "variable.other.c"
-						},
 						"2": {
 							"name": "punctuation.definition.parameters.c"
 						}
@@ -396,16 +340,6 @@
 				},
 				{
 					"include": "$base"
-				}
-			]
-		},
-		"c_function_call": {
-			"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate)\\s*\\()\n(?=\n(?:[A-Za-z_][A-Za-z0-9_]*+|::)++\\s*\\(  # actual name\n|\n(?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\\s*\\(\n)",
-			"end": "(?<=\\))(?!\\w)",
-			"name": "meta.function-call.c",
-			"patterns": [
-				{
-					"include": "#function-call-innards"
 				}
 			]
 		},
@@ -563,7 +497,7 @@
 					"name": "meta.preprocessor.pragma.c"
 				},
 				"2": {
-					"name": "keyword.control.directive.pragma.pragma-mark.c"
+					"name": "keyword.other.directive.pragma.pragma-mark.c"
 				},
 				"3": {
 					"name": "punctuation.definition.directive.c"
@@ -641,9 +575,6 @@
 						},
 						{
 							"include": "#libc"
-						},
-						{
-							"include": "#c_function_call"
 						},
 						{
 							"include": "$base"
@@ -733,14 +664,6 @@
 				}
 			]
 		},
-		"storage_types": {
-			"patterns": [
-				{
-					"match": "\\b(asm|__asm__|auto|bool|_Bool|char|_Complex|double|enum|float|_Imaginary|int|long|short|signed|struct|typedef|union|unsigned|void)\\b",
-					"name": "storage.type.c"
-				}
-			]
-		},
 		"vararg_ellipses": {
 			"match": "(?<!\\.)\\.\\.\\.(?!\\.)",
 			"name": "punctuation.vararg-ellipses.c"
@@ -754,7 +677,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -766,7 +689,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -796,7 +719,7 @@
 							"begin": "^\\s*((#)\\s*elif\\b)",
 							"beginCaptures": {
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -834,7 +757,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -846,7 +769,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -876,7 +799,7 @@
 							"begin": "^\\s*((#)\\s*elif\\b)",
 							"beginCaptures": {
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -909,7 +832,7 @@
 			"patterns": [
 				{
 					"match": "(?:\\bdefined\\b\\s*$)|(?:\\bdefined\\b(?=\\s*\\(*\\s*(?:(?!defined\\b)[a-zA-Z_$][\\w$]*\\b)\\s*\\)*\\s*(?:\\n|//|/\\*|\\?|\\:|&&|\\|\\||\\\\\\s*\\n)))",
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				{
 					"match": "\\bdefined\\b",
@@ -951,10 +874,6 @@
 					"name": "constant.language.c"
 				},
 				{
-					"match": "[a-zA-Z_$][\\w$]*",
-					"name": "entity.name.function.preprocessor.c"
-				},
-				{
 					"include": "#line_continuation_character"
 				},
 				{
@@ -987,7 +906,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -999,7 +918,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1035,7 +954,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1084,7 +1003,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1096,7 +1015,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1132,7 +1051,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1179,7 +1098,7 @@
 					"name": "meta.preprocessor.c"
 				},
 				"1": {
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -1224,7 +1143,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1239,7 +1158,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1266,7 +1185,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1290,7 +1209,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1329,7 +1248,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1341,7 +1260,7 @@
 							"name": "meta.preprocessor.c"
 						},
 						"1": {
-							"name": "keyword.control.directive.conditional.c"
+							"name": "keyword.other.directive.conditional.c"
 						},
 						"2": {
 							"name": "punctuation.definition.directive.c"
@@ -1368,7 +1287,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1392,7 +1311,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1429,7 +1348,7 @@
 					"name": "meta.preprocessor.c"
 				},
 				"1": {
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -1461,7 +1380,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1485,7 +1404,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1516,7 +1435,7 @@
 					"name": "meta.preprocessor.c"
 				},
 				"1": {
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -1548,7 +1467,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1572,7 +1491,7 @@
 									"name": "meta.preprocessor.c"
 								},
 								"1": {
-									"name": "keyword.control.directive.conditional.c"
+									"name": "keyword.other.directive.conditional.c"
 								},
 								"2": {
 									"name": "punctuation.definition.directive.c"
@@ -1603,7 +1522,7 @@
 					"name": "meta.preprocessor.c"
 				},
 				"1": {
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -1623,7 +1542,7 @@
 					"name": "meta.preprocessor.c"
 				},
 				"1": {
-					"name": "keyword.control.directive.conditional.c"
+					"name": "keyword.other.directive.conditional.c"
 				},
 				"2": {
 					"name": "punctuation.definition.directive.c"
@@ -1668,16 +1587,6 @@
 				{
 					"match": "\\)",
 					"name": "punctuation.section.parens.end.bracket.round.c"
-				},
-				{
-					"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate|asm|__asm__|auto|bool|_Bool|char|_Complex|double|enum|float|_Imaginary|int|long|short|signed|struct|typedef|union|unsigned|void)\\s*\\()\n(?=\n  (?:[A-Za-z_][A-Za-z0-9_]*+|::)++\\s*\\(  # actual name\n  |\n  (?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\\s*\\(\n)",
-					"end": "(?<=\\))(?!\\w)|(?<!\\\\)(?=\\s*\\n)",
-					"name": "meta.function.c",
-					"patterns": [
-						{
-							"include": "#preprocessor-rule-define-line-functions"
-						}
-					]
 				},
 				{
 					"begin": "\"",
@@ -1774,9 +1683,6 @@
 					"include": "#comments"
 				},
 				{
-					"include": "#storage_types"
-				},
-				{
 					"include": "#vararg_ellipses"
 				},
 				{
@@ -1788,9 +1694,6 @@
 				{
 					"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate)\\s*\\()\n(\n(?:[A-Za-z_][A-Za-z0-9_]*+|::)++  # actual name\n|\n(?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\n)\n\\s*(\\()",
 					"beginCaptures": {
-						"1": {
-							"name": "entity.name.function.c"
-						},
 						"2": {
 							"name": "punctuation.section.arguments.begin.bracket.round.c"
 						}
@@ -1828,126 +1731,6 @@
 				},
 				{
 					"include": "#preprocessor-rule-define-line-contents"
-				}
-			]
-		},
-		"function-innards": {
-			"patterns": [
-				{
-					"include": "#comments"
-				},
-				{
-					"include": "#storage_types"
-				},
-				{
-					"include": "#operators"
-				},
-				{
-					"include": "#vararg_ellipses"
-				},
-				{
-					"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate)\\s*\\()\n(\n(?:[A-Za-z_][A-Za-z0-9_]*+|::)++  # actual name\n|\n(?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\n)\n\\s*(\\()",
-					"beginCaptures": {
-						"1": {
-							"name": "entity.name.function.c"
-						},
-						"2": {
-							"name": "punctuation.section.parameters.begin.bracket.round.c"
-						}
-					},
-					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.section.parameters.end.bracket.round.c"
-						}
-					},
-					"patterns": [
-						{
-							"include": "#function-innards"
-						}
-					]
-				},
-				{
-					"begin": "\\(",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.section.parens.begin.bracket.round.c"
-						}
-					},
-					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.section.parens.end.bracket.round.c"
-						}
-					},
-					"patterns": [
-						{
-							"include": "#function-innards"
-						}
-					]
-				},
-				{
-					"include": "$base"
-				}
-			]
-		},
-		"function-call-innards": {
-			"patterns": [
-				{
-					"include": "#comments"
-				},
-				{
-					"include": "#storage_types"
-				},
-				{
-					"include": "#access"
-				},
-				{
-					"include": "#operators"
-				},
-				{
-					"begin": "(?x)\n(?!(?:while|for|do|if|else|switch|catch|enumerate|return|typeid|alignof|alignas|sizeof|[cr]?iterate)\\s*\\()\n(\n(?:[A-Za-z_][A-Za-z0-9_]*+|::)++  # actual name\n|\n(?:(?<=operator)(?:[-*&<>=+!]+|\\(\\)|\\[\\]))\n)\n\\s*(\\()",
-					"beginCaptures": {
-						"1": {
-							"name": "entity.name.function.c"
-						},
-						"2": {
-							"name": "punctuation.section.arguments.begin.bracket.round.c"
-						}
-					},
-					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.section.arguments.end.bracket.round.c"
-						}
-					},
-					"patterns": [
-						{
-							"include": "#function-call-innards"
-						}
-					]
-				},
-				{
-					"begin": "\\(",
-					"beginCaptures": {
-						"0": {
-							"name": "punctuation.section.parens.begin.bracket.round.c"
-						}
-					},
-					"end": "\\)",
-					"endCaptures": {
-						"0": {
-							"name": "punctuation.section.parens.end.bracket.round.c"
-						}
-					},
-					"patterns": [
-						{
-							"include": "#function-call-innards"
-						}
-					]
-				},
-				{
-					"include": "#block_innards"
 				}
 			]
 		}

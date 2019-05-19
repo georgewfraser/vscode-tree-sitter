@@ -688,10 +688,6 @@
 							"include": "#comment"
 						},
 						{
-							"name": "variable.object.property.ts",
-							"match": "[_$[:alpha:]][_$[:alnum:]]*"
-						},
-						{
 							"name": "keyword.operator.optional.ts",
 							"match": "\\?"
 						}
