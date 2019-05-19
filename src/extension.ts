@@ -90,7 +90,7 @@ export function activate(context: VS.ExtensionContext) {
 		var fields: VS.Range[] = []
 		function isVisible(x: Parser.SyntaxNode) {
 			for (let visible of editor.visibleRanges) {
-				const overlap = x.startPosition.row <= visible.end.line && visible.start.line <= x.endPosition.row;
+				const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row;
 				if (overlap) return true;
 			}
 			return false;
