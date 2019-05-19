@@ -7,6 +7,7 @@ const languages: {[id: string]: Parser} = {
 	'go': createParser('tree-sitter-go'),
 	'typescript': createParser('tree-sitter-typescript'),
 	'cpp': createParser('tree-sitter-cpp'),
+	'rust': createParser('tree-sitter-rust'),
 }
 
 function createParser(module: string) {
@@ -119,7 +120,7 @@ export function activate(context: VS.ExtensionContext) {
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
 		editor.setDecorations(functionStyle, functions)
-		// console.log(t.rootNode.toString())
+		console.log(t.rootNode.toString())
 	}
 	function range(x: Parser.SyntaxNode): VS.Range {
 		return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
@@ -137,6 +138,10 @@ function color(x: Parser.SyntaxNode) {
 			if (x.parent == null) return
 			switch (x.parent.type) {
 				case 'function':
+				case 'function_item':
+					if (x.parent.parent != null && x.parent.parent.type == 'declaration_list') 
+						return 'field'
+					return 'function'
 				case 'function_declarator':
 				case 'function_declaration':
 						return 'function'

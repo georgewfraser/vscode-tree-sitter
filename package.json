@@ -18,7 +18,8 @@
 	"activationEvents": [
 		"onLanguage:go",
 		"onLanguage:typescript",
-		"onLanguage:cpp"
+		"onLanguage:cpp",
+		"onLanguage:rust"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -37,6 +38,11 @@
 				"language": "cpp",
 				"scopeName": "source.cpp",
 				"path": "./src/cpp.tmLanguage.json"
+			},
+			{
+				"language": "rust",
+				"scopeName": "source.rust",
+				"path": "./src/rust.tmLanguage.json"
 			}
 		],
 		"colors": [
@@ -90,6 +96,7 @@
 		"tree-sitter-c": "^0.13.13",
 		"tree-sitter-cpp": "^0.13.15",
 		"tree-sitter-go": "^0.13.3",
+		"tree-sitter-rust": "^0.13.7",
 		"tree-sitter-typescript": "^0.13.6"
 	}
 }
