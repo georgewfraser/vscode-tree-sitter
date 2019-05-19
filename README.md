@@ -8,7 +8,7 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ## C++
 
-![Go](./screenshots/cpp.png)
+![C++](./screenshots/cpp.png)
 
 ## Typescript
 
