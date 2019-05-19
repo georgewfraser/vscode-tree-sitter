@@ -70,13 +70,13 @@ export function activate(context: VS.ExtensionContext) {
 	}
 	// Apply themeable colors
 	const typeStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitterType')
+        color: new VS.ThemeColor('treeSitter.type')
 	})
 	const fieldStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitterField')
+        color: new VS.ThemeColor('treeSitter.field')
 	})
 	const functionStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitterFunction')
+        color: new VS.ThemeColor('treeSitter.function')
 	})
 	function colorUri(uri: VS.Uri) {
 		for (let editor of VS.window.visibleTextEditors) {

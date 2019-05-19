@@ -41,7 +41,7 @@
 		],
 		"colors": [
 			{
-				"id": "treeSitterField",
+				"id": "treeSitter.field",
 				"description": "Color for fields",
 				"defaults": {
 					"dark": "#9CDCFE",
@@ -50,7 +50,7 @@
 				}
 			},
 			{
-				"id": "treeSitterType",
+				"id": "treeSitter.type",
 				"description": "Color for types",
 				"defaults": {
 					"dark": "#4EC9B0",
@@ -59,7 +59,7 @@
 				}
 			},
 			{
-				"id": "treeSitterFunction",
+				"id": "treeSitter.function",
 				"description": "Color for functions",
 				"defaults": {
 					"dark": "#DCDCAA",

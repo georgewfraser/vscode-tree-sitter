@@ -21,4 +21,4 @@ On each edit, `./lib/extension.ts` runs the tree-sitter incremental parser, and 
 
 ## Customizing colors
 
-The colors are defined in package.json (`treeSitterField`, `treeSitterType`, `treeSitterFunction`), and are [themable](https://code.visualstudio.com/api/extension-guides/color-theme).
+The colors are defined in package.json (`treeSitter.field`, `treeSitter.type`, `treeSitter.function`), and are [themable](https://code.visualstudio.com/api/extension-guides/color-theme).
