@@ -85,6 +85,7 @@
 		"vscode": "^1.1.25"
 	},
 	"dependencies": {
+		"tar": ">=4.4.2",
 		"tree-sitter": "^0.15.1",
 		"tree-sitter-c": "^0.13.13",
 		"tree-sitter-cpp": "^0.13.15",
