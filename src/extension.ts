@@ -4,7 +4,8 @@ import * as Parser from 'tree-sitter'
 // Be sure to declare the language in package.json,
 // and include a minimalist grammar.
 const languages: {[id: string]: Parser} = {
-	'go': createParser('tree-sitter-go')
+	'go': createParser('tree-sitter-go'),
+	'typescript': createParser('tree-sitter-typescript'),
 }
 
 function createParser(module: string) {
@@ -16,12 +17,6 @@ function createParser(module: string) {
 
 // Called when the extension is first activated by user opening a file with the appropriate language
 export function activate(context: VS.ExtensionContext) {
-	const typeStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitterType')
-	})
-	const fieldStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitterField')
-	})
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
 	function open(editor: VS.TextEditor) {
@@ -29,14 +24,14 @@ export function activate(context: VS.ExtensionContext) {
 		if (parser != null) {
 			const t = parser.parse(editor.document.getText())
 			trees[editor.document.uri.toString()] = t
-			colorUri(editor.document.uri, t)
+			colorUri(editor.document.uri)
 		}
 	}
 	function edit(edit: VS.TextDocumentChangeEvent) {
 		const parser = languages[edit.document.languageId]
 		if (parser != null) {
-			const t = updateTree(parser, edit)
-			colorUri(edit.document.uri, t)
+			updateTree(parser, edit)
+			colorUri(edit.document.uri)
 		}
 	}
 	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent): Parser.Tree {
@@ -72,24 +67,37 @@ export function activate(context: VS.ExtensionContext) {
 			delete trees[doc.uri.toString()]
 		}
 	}
-	function colorUri(uri: VS.Uri, t: Parser.Tree) {
+	// Apply themeable colors
+	const typeStyle = VS.window.createTextEditorDecorationType({
+        color: new VS.ThemeColor('treeSitterType')
+	})
+	const fieldStyle = VS.window.createTextEditorDecorationType({
+        color: new VS.ThemeColor('treeSitterField')
+	})
+	function colorUri(uri: VS.Uri) {
 		for (let editor of VS.window.visibleTextEditors) {
 			if (editor.document.uri == uri) {
-				colorEditor(editor, t)
+				colorEditor(editor)
 			}
 		}
 	}
-	function colorEditor(editor: VS.TextEditor, t: Parser.Tree) {
+	function colorEditor(editor: VS.TextEditor) {
+		const t = trees[editor.document.uri.toString()]
 		var types: VS.Range[] = []
 		var fields: VS.Range[] = []
 		function search(x: Parser.SyntaxNode) {
-			if (x.type == 'type_identifier') {
-				const r = range(x)
-				types.push(r)
-			}
-			if (x.type == 'field_identifier') {
-				const r = range(x)
-				fields.push(r)
+			switch (x.type) {
+				case 'type_identifier':
+				case 'predefined_type':{
+					const r = range(x)
+					types.push(r)
+					return
+				}
+				case 'field_identifier':{
+					const r = range(x)
+					fields.push(r)
+					return
+				}
 			}
 			for (let child of x.children) {
 				search(child)

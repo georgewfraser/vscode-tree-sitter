@@ -39,7 +39,7 @@
 			},
 			{
 				"id": "treeSitterType",
-				"description": "Color for fields",
+				"description": "Color for types",
 				"defaults": {
 					"dark": "#4EC9B0",
 					"light": "#267f99",
