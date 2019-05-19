@@ -18,8 +18,7 @@
 	"activationEvents": [
 		"onLanguage:go",
 		"onLanguage:typescript",
-		"onLanguage:cpp",
-		"onLanguage:c"
+		"onLanguage:cpp"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -38,11 +37,6 @@
 				"language": "cpp",
 				"scopeName": "source.cpp",
 				"path": "./src/cpp.tmLanguage.json"
-			},
-			{
-				"language": "c",
-				"scopeName": "source.c",
-				"path": "./src/c.tmLanguage.json"
 			}
 		],
 		"colors": [

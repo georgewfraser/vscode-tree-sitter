@@ -105,6 +105,8 @@ export function activate(context: VS.ExtensionContext) {
 				case 'identifier':
 					if (x.parent == null) return
 					switch (x.parent.type) {
+						case 'destructor_name':
+						case 'function_declarator':
 						case 'function_declaration':
 								const r = range(x)
 								functions.push(r)
@@ -133,7 +135,7 @@ export function activate(context: VS.ExtensionContext) {
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
 		editor.setDecorations(functionStyle, functions)
-		console.log(t.rootNode.toString())
+		// console.log(t.rootNode.toString())
 	}
 	function range(x: Parser.SyntaxNode): VS.Range {
 		return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
