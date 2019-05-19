@@ -4,11 +4,21 @@
 	"name": "Rust",
 	"scopeName": "source.rust",
 	"patterns": [
-        {
-			"comment": "Implementation",
-            "match": "\\b(impl)\\b",
-            "name": "storage.type.rust"
-        },
+		{
+			"comment": "Regular keywords",
+			"match": "\\b('static|Self|abstract|box|const|crate|dyn|enum|extern|final|fn|impl|let|macro|mod|mut|override|priv|pub|ref|self|static|struct|super|trait|type|union|unsized|virtual|where)\\b",
+			"name": "keyword.other.rust"
+		},
+		{
+			"comment": "Control keywords",
+			"match": "\\b(as|async|await|become|break|continue|do|else|for|if|in|loop|match|move|return|try|typeof|unsafe|use|while|yield)\\b",
+			"name": "Keyword.control.rust"
+		},
+		{
+			"comment": "Boolean literals",
+			"match": "\\b(true|false)\\b",
+			"name": "constant.numeric.boolean.rust"
+		},
 		{
 			"include": "#block_doc_comment"
 		},
@@ -91,58 +101,6 @@
 			"match": "\\b0b[01_]+([ui](8|16|32|64|128|s|size))?\\b"
 		},
 		{
-			"comment": "Static storage modifier",
-			"name": "storage.modifier.static.rust",
-			"match": "\\bstatic\\b"
-		},
-		{
-			"comment": "Boolean constant",
-			"name": "constant.language.boolean.rust",
-			"match": "\\b(true|false)\\b"
-		},
-		{
-			"comment": "Control keyword",
-			"name": "keyword.control.rust",
-			"match": "\\b(break|continue|else|if|in|for|loop|match|return|while)\\b"
-		},
-		{
-			"comment": "Keyword",
-			"name": "keyword.other.rust",
-			"match": "\\b(crate|extern|mod|let|ref|use|super|move)\\b"
-		},
-		{
-			"comment": "Reserved keyword",
-			"name": "invalid.deprecated.rust",
-			"match": "\\b(abstract|alignof|become|do|final|macro|offsetof|override|priv|proc|pure|sizeof|typeof|virtual|yield)\\b"
-		},
-		{
-			"include": "#unsafe"
-		},
-		{
-			"include": "#sigils"
-		},
-		{
-			"include": "#self"
-		},
-		{
-			"include": "#mut"
-		},
-		{
-			"include": "#dyn"
-		},
-		{
-			"include": "#impl"
-		},
-		{
-			"include": "#box"
-		},
-		{
-			"include": "#const"
-		},
-		{
-			"include": "#pub"
-		},
-		{
 			"comment": "Miscellaneous operator",
 			"name": "keyword.operator.misc.rust",
 			"match": "(=>|::|\\bas\\b)"
@@ -166,21 +124,6 @@
 			"comment": "Comparison operator (second group because of regex precedence)",
 			"name": "keyword.operator.comparison.rust",
 			"match": "(<=|>=|<|>)"
-		},
-		{
-			"comment": "Function definition",
-			"match": "\\b(fn)\\b",
-            "name": "keyword.other.fn.rust"
-        },
-		{
-			"comment": "Type declaration",
-			"match": "\\b(enum|struct|trait|union)\\b",
-            "name": "storage.type.rust"
-		},
-		{
-			"comment": "Type alias",
-			"match": "\\b(type)\\b",
-            "name": "storage.type.rust"
 		}
 	],
 	"repository": {
@@ -249,51 +192,6 @@
 			"comment": "Sigil",
 			"name": "keyword.operator.sigil.rust",
 			"match": "[&*](?=[a-zA-Z0-9_\\(\\[\\|\\\"]+)"
-		},
-		"self": {
-			"comment": "Self variable",
-			"name": "variable.language.rust",
-			"match": "\\bself\\b"
-		},
-		"mut": {
-			"comment": "Mutable storage modifier",
-			"name": "storage.modifier.mut.rust",
-			"match": "\\bmut\\b"
-		},
-		"dyn": {
-			"comment": "Dynamic modifier",
-			"name": "storage.modifier.dyn.rust",
-			"match": "\\bdyn\\b"
-		},
-		"impl": {
-			"comment": "Existential type modifier",
-			"name": "storage.modifier.impl.rust",
-			"match": "\\bimpl\\b"
-		},
-		"box": {
-			"comment": "Box storage modifier",
-			"name": "storage.modifier.box.rust",
-			"match": "\\bbox\\b"
-		},
-		"const": {
-			"comment": "Const storage modifier",
-			"name": "storage.modifier.const.rust",
-			"match": "\\bconst\\b"
-		},
-		"pub": {
-			"comment": "Visibility modifier",
-			"name": "storage.modifier.visibility.rust",
-			"match": "\\bpub\\b"
-		},
-		"unsafe": {
-			"comment": "Unsafe code keyword",
-			"name": "keyword.other.unsafe.rust",
-			"match": "\\bunsafe\\b"
-		},
-		"where": {
-			"comment": "Generic where clause",
-			"name": "keyword.other.where.rust",
-			"match": "\\bwhere\\b"
 		}
 	}
 }
