@@ -99,39 +99,17 @@ export function activate(context: VS.ExtensionContext) {
 		}
 		function scan(x: Parser.SyntaxNode) {
 			if (!isVisible(x)) return
-			switch (x.type) {
-				case 'identifier':
-					if (x.parent == null) return
-					switch (x.parent.type) {
-						case 'function':
-						case 'function_declarator':
-						case 'function_declaration':
-								const r = range(x)
-								functions.push(r)
-								return
-						case 'scoped_identifier':
-							if (x.parent.parent == null) return
-							switch (x.parent.parent.type) {
-								case 'function_declarator':
-										const r = range(x)
-										functions.push(r)
-										return
-							}
-					}
-					return
-				case 'primitive_type':
-				case 'type_identifier':
-				case 'predefined_type':{
-					const r = range(x)
-					types.push(r)
-					return
-				}
-				case 'property_identifier':
-				case 'field_identifier':{
-					const r = range(x)
-					fields.push(r)
-					return
-				}
+			const c = color(x)
+			switch (c) {
+				case 'function':
+					functions.push(range(x))
+					break
+				case 'type':
+					types.push(range(x))
+					break
+				case 'field':
+					fields.push(range(x))
+					break
 			}
 			for (let child of x.children) {
 				scan(child)
@@ -151,6 +129,35 @@ export function activate(context: VS.ExtensionContext) {
 	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
 	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
+}
+
+function color(x: Parser.SyntaxNode) {
+	switch (x.type) {
+		case 'identifier':
+			if (x.parent == null) return
+			switch (x.parent.type) {
+				case 'function':
+				case 'function_declarator':
+				case 'function_declaration':
+						return 'function'
+				case 'scoped_identifier':
+					if (x.parent.parent == null) return
+					switch (x.parent.parent.type) {
+						case 'function_declarator':
+								return 'function'
+					}
+			}
+			return
+		case 'primitive_type':
+		case 'type_identifier':
+		case 'predefined_type':{
+			return 'type'
+		}
+		case 'property_identifier':
+		case 'field_identifier':{
+			return 'field'
+		}
+	}
 }
 
 // this method is called when your extension is deactivated
