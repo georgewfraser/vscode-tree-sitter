@@ -73,7 +73,7 @@
 		{
 			"comment": "Language constants",
 			"match": "\\b(true|false|nil|iota)\\b",
-			"name": "constant.language.go"
+			"name": "constant.numeric.language.go"
 		},
 		{
 			"comment": "Terminators",
@@ -109,7 +109,7 @@
 			"patterns": [
 				{
 					"comment": "Flow control keywords",
-					"match": "\\b(break|case|continue|default|defer|else|fallthrough|for|go|goto|if|range|return|select|switch)\\b",
+					"match": "\\b(break|case|continue|default|defer|panic|recover|else|fallthrough|for|go|goto|if|range|return|select|switch)\\b",
 					"name": "keyword.control.go"
 				},
 				{
