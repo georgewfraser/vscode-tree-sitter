@@ -3,6 +3,11 @@
 	"displayName": "Tree Sitter",
 	"description": "Accurate syntax coloring with tree-sitter for VSCode",
 	"version": "0.0.1",
+	"publisher": "georgewfraser",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/georgewfraser/vscode-tree-sitter"
+    },
 	"engines": {
 		"vscode": "^1.34.0"
 	},

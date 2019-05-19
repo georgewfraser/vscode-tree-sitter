@@ -22,7 +22,7 @@ export function activate(context: VS.ExtensionContext) {
 	function open(editor: VS.TextEditor) {
 		const parser = languages[editor.document.languageId]
 		if (parser != null) {
-			const t = parser.parse(editor.document.getText())
+			const t = parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
 			trees[editor.document.uri.toString()] = t
 			colorUri(editor.document.uri)
 		}
@@ -46,7 +46,7 @@ export function activate(context: VS.ExtensionContext) {
 		const oldEndPosition = asPoint(oldEndPos)
 		const newEndPosition = asPoint(newEndPos)
 		old.edit({startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition})
-		const t = parser.parse(edit.document.getText(), old)
+		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
 		return t
 	}
@@ -85,7 +85,8 @@ export function activate(context: VS.ExtensionContext) {
 		const t = trees[editor.document.uri.toString()]
 		var types: VS.Range[] = []
 		var fields: VS.Range[] = []
-		function search(x: Parser.SyntaxNode) {
+		// TODO don't color the entire document, just do the parts that are visible
+		function scan(x: Parser.SyntaxNode) {
 			switch (x.type) {
 				case 'type_identifier':
 				case 'predefined_type':{
@@ -93,6 +94,7 @@ export function activate(context: VS.ExtensionContext) {
 					types.push(r)
 					return
 				}
+				case 'property_identifier':
 				case 'field_identifier':{
 					const r = range(x)
 					fields.push(r)
@@ -100,12 +102,13 @@ export function activate(context: VS.ExtensionContext) {
 				}
 			}
 			for (let child of x.children) {
-				search(child)
+				scan(child)
 			}
 		}
-		search(t.rootNode)
+		scan(t.rootNode)
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
+		// console.log(t.rootNode.toString())
 	}
 	function range(x: Parser.SyntaxNode): VS.Range {
 		return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
