@@ -1,3 +1,5 @@
+**NOTE:** The native dependencies is not yet compiling correctly on Windows, so at the moment this extension only works on Mac. See https://github.com/georgewfraser/vscode-tree-sitter/issues/3
+
 # Tree Sitter for VSCode
 
 This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring. Examples with tree-sitter coloring on the right:
