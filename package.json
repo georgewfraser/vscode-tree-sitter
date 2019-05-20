@@ -3,7 +3,7 @@
 	"displayName": "Tree Sitter",
 	"description": "Accurate syntax coloring with tree-sitter",
 	"icon": "tree-sitter-small.png",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"preview": true,
 	"publisher": "georgewfraser",
 	"repository": {
