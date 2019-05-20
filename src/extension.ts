@@ -49,7 +49,9 @@ export function activate(context: VS.ExtensionContext) {
 		const startPosition = asPoint(startPos)
 		const oldEndPosition = asPoint(oldEndPos)
 		const newEndPosition = asPoint(newEndPos)
-		old.edit({startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition})
+		const delta = {startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition}
+		// console.log(edit.document.uri.toString(), delta)
+		old.edit(delta)
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
 	}
