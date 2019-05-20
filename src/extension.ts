@@ -19,6 +19,7 @@ function createParser(module: string) {
 
 // Called when the extension is first activated by user opening a file with the appropriate language
 export function activate(context: VS.ExtensionContext) {
+	console.log("Activating tree-sitter...")
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
 	function open(editor: VS.TextEditor) {
