@@ -89,6 +89,7 @@ export function activate(context: VS.ExtensionContext) {
 	}
 	function colorEditor(editor: VS.TextEditor) {
 		const t = trees[editor.document.uri.toString()]
+		if (t == null) return;
 		var types: VS.Range[] = []
 		var fields: VS.Range[] = []
 		var functions: VS.Range[] = []
