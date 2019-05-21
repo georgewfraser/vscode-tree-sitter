@@ -1,6 +1,14 @@
 import * as VS from 'vscode'
 import * as Parser from 'tree-sitter'
 
+// Be sure to declare the language in package.json and include a minimalist grammar.
+const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
+	'go': createParser('tree-sitter-go', colorGo),
+	'typescript': createParser('tree-sitter-typescript', colorTypescript),
+	'cpp': createParser('tree-sitter-cpp', colorCpp),
+	'rust': createParser('tree-sitter-rust', colorRust),
+}
+
 function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	var types: VS.Range[] = []
 	var fields: VS.Range[] = []
@@ -105,14 +113,6 @@ function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 
 function range(x: Parser.SyntaxNode): VS.Range {
 	return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
-}
-
-// Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
-	'go': createParser('tree-sitter-go', colorGo),
-	'typescript': createParser('tree-sitter-typescript', colorTypescript),
-	'cpp': createParser('tree-sitter-cpp', colorCpp),
-	'rust': createParser('tree-sitter-rust', colorRust),
 }
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: VS.Range[], fields: VS.Range[], functions: VS.Range[]}
