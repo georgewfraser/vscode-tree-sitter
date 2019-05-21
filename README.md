@@ -1,6 +1,6 @@
 # Tree Sitter for VSCode
 
-**WINDOWS AND LINUX USERS:** Please download the appropriate .vsix file from [here](https://github.com/microsoft/vscode/issues/23251) and install manually until https://github.com/microsoft/vscode/issues/23251 is complete.
+**WINDOWS AND LINUX USERS:** Please download the appropriate .vsix file from [here](https://github.com/georgewfraser/vscode-tree-sitter/releases) and install manually until https://github.com/microsoft/vscode/issues/23251 is complete.
 
 This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.io/tree-sitter/) syntax coloring. Examples with tree-sitter coloring on the right:
 
