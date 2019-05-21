@@ -14,8 +14,6 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
-
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+- script: npm install
+- script: npm run electron-rebuild
+- script: npm run build
