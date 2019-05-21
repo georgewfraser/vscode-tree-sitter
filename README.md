@@ -20,7 +20,16 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ![Typescript](./screenshots/typescript.png)
 
-## Adding a new language
+## Contributing
+
+### Fixing colorization of an existing language
+
+If you see something getting colored wrong, or something that should be colored but isn't, please make a PR to fix it! Colorization is performed by the various `colorLanguage(x, editor)` functions at the top of [extension.ts](https://github.com/georgewfraser/vscode-tree-sitter/blob/master/src/extension.ts). When working on the colorization rules, please keep in mind two core principles:
+
+1. Good colorization is *consistent*. It's better to not color at all than to color inconsistently.
+2. Good colorization is *selective*. The fewer things that we color, the more emphasis the color gives.
+
+### Adding a new language
 
 It's straightforward to add any [language with a tree-sitter grammar](https://tree-sitter.github.io/tree-sitter/).
 
@@ -35,6 +44,6 @@ It's straightforward to add any [language with a tree-sitter grammar](https://tr
 9. Take a screenshot comparing before-and-after and add it to the above list.
 10. Submit a PR!
 
-## Customizing colors
+### Customizing colors
 
 The colors are defined in package.json (`treeSitter.field`, `treeSitter.type`, `treeSitter.function`), and are [themable](https://code.visualstudio.com/api/extension-guides/color-theme).
