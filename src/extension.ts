@@ -1,20 +1,127 @@
 import * as VS from 'vscode'
 import * as Parser from 'tree-sitter'
 
-// Be sure to declare the language in package.json,
-// and include a minimalist grammar.
-const languages: {[id: string]: Parser} = {
-	'go': createParser('tree-sitter-go'),
-	'typescript': createParser('tree-sitter-typescript'),
-	'cpp': createParser('tree-sitter-cpp'),
-	'rust': createParser('tree-sitter-rust'),
+function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	var types: VS.Range[] = []
+	var fields: VS.Range[] = []
+	var functions: VS.Range[] = []
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, editor)) return
+		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
+			functions.push(range(x))
+		} else if (x.type == 'type_identifier') {
+			types.push(range(x))
+		} else if (x.type == 'field_identifier') {
+			fields.push(range(x))
+		}
+		for (let child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
+
+	return {types, fields, functions}
 }
 
-function createParser(module: string) {
+function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	var types: VS.Range[] = []
+	var fields: VS.Range[] = []
+	var functions: VS.Range[] = []
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, editor)) return
+		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function') {
+			functions.push(range(x))
+		} else if (x.type == 'type_identifier' || x.type == 'predefined_type') {
+			types.push(range(x))
+		} else if (x.type == 'property_identifier') {
+			fields.push(range(x))
+		}
+		for (let child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
+
+	return {types, fields, functions}
+}
+
+function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	var types: VS.Range[] = []
+	var fields: VS.Range[] = []
+	var functions: VS.Range[] = []
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, editor)) return
+		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
+			fields.push(range(x))
+		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item') {
+			functions.push(range(x))
+		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
+			functions.push(range(x))
+		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
+			types.push(range(x))
+		} else if (x.type == 'field_identifier') {
+			fields.push(range(x))
+		}
+		for (let child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
+
+	return {types, fields, functions}
+}
+
+function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	var types: VS.Range[] = []
+	var fields: VS.Range[] = []
+	var functions: VS.Range[] = []
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, editor)) return
+		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declarator') {
+			functions.push(range(x))
+		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
+			functions.push(range(x))
+		} else if (x.type == 'type_identifier') {
+			types.push(range(x))
+		} else if (x.type == 'field_identifier') {
+			fields.push(range(x))
+		}
+		for (let child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
+
+	return {types, fields, functions}
+}
+
+function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	for (let visible of editor.visibleRanges) {
+		const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
+		if (overlap) return true
+	}
+	return false
+}
+
+function range(x: Parser.SyntaxNode): VS.Range {
+	return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
+}
+
+// Be sure to declare the language in package.json and include a minimalist grammar.
+const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
+	'go': createParser('tree-sitter-go', colorGo),
+	'typescript': createParser('tree-sitter-typescript', colorTypescript),
+	'cpp': createParser('tree-sitter-cpp', colorCpp),
+	'rust': createParser('tree-sitter-rust', colorRust),
+}
+
+type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: VS.Range[], fields: VS.Range[], functions: VS.Range[]}
+
+function createParser(module: string, color: ColorFunction): {parser: Parser, color: ColorFunction} {
 	const lang = require(module)
 	const parser = new Parser()
 	parser.setLanguage(lang)
-	return parser
+	return {parser, color}
 }
 
 // Called when the extension is first activated by user opening a file with the appropriate language
@@ -23,7 +130,7 @@ export function activate(context: VS.ExtensionContext) {
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
 	function open(editor: VS.TextEditor) {
-		const parser = languages[editor.document.languageId]
+		const {parser} = languages[editor.document.languageId]
 		if (parser != null) {
 			const t = parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
 			trees[editor.document.uri.toString()] = t
@@ -31,7 +138,7 @@ export function activate(context: VS.ExtensionContext) {
 		}
 	}
 	function edit(edit: VS.TextDocumentChangeEvent) {
-		const parser = languages[edit.document.languageId]
+		const {parser} = languages[edit.document.languageId]
 		if (parser != null) {
 			updateTree(parser, edit)
 			colorUri(edit.document.uri)
@@ -92,81 +199,18 @@ export function activate(context: VS.ExtensionContext) {
 	function colorEditor(editor: VS.TextEditor) {
 		const t = trees[editor.document.uri.toString()]
 		if (t == null) return;
-		var types: VS.Range[] = []
-		var fields: VS.Range[] = []
-		var functions: VS.Range[] = []
-		function isVisible(x: Parser.SyntaxNode) {
-			for (let visible of editor.visibleRanges) {
-				const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
-				if (overlap) return true
-			}
-			return false
-		}
-		function scan(x: Parser.SyntaxNode) {
-			if (!isVisible(x)) return
-			const c = color(x)
-			switch (c) {
-				case 'function':
-					functions.push(range(x))
-					break
-				case 'type':
-					types.push(range(x))
-					break
-				case 'field':
-					fields.push(range(x))
-					break
-			}
-			for (let child of x.children) {
-				scan(child)
-			}
-		}
-		scan(t.rootNode)
+		const {color} = languages[editor.document.languageId]
+		const {types, fields, functions} = color(t.rootNode, editor)
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
 		editor.setDecorations(functionStyle, functions)
 		// console.log(t.rootNode.toString())
-	}
-	function range(x: Parser.SyntaxNode): VS.Range {
-		return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
 	}
 	VS.window.visibleTextEditors.forEach(open)
 	context.subscriptions.push(VS.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
 	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
 	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
-}
-
-function color(x: Parser.SyntaxNode) {
-	switch (x.type) {
-		case 'identifier':
-			if (x.parent == null) return
-			switch (x.parent.type) {
-				case 'function':
-				case 'function_item':
-					if (x.parent.parent != null && x.parent.parent.type == 'declaration_list') 
-						return 'field'
-					return 'function'
-				case 'function_declarator':
-				case 'function_declaration':
-						return 'function'
-				case 'scoped_identifier':
-					if (x.parent.parent == null) return
-					switch (x.parent.parent.type) {
-						case 'function_declarator':
-								return 'function'
-					}
-			}
-			return
-		case 'primitive_type':
-		case 'type_identifier':
-		case 'predefined_type':{
-			return 'type'
-		}
-		case 'property_identifier':
-		case 'field_identifier':{
-			return 'field'
-		}
-	}
 }
 
 // this method is called when your extension is deactivated
