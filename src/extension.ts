@@ -200,6 +200,7 @@ export function activate(context: VS.ExtensionContext) {
 		const t = trees[editor.document.uri.toString()]
 		if (t == null) return;
 		const {color} = languages[editor.document.languageId]
+		if (color == null) return;
 		const {types, fields, functions} = color(t.rootNode, editor)
 		editor.setDecorations(typeStyle, types)
 		editor.setDecorations(fieldStyle, fields)
