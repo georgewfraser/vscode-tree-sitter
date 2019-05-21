@@ -14,6 +14,9 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
-- script: npm install
-- script: npm run electron-rebuild
-- script: npm run build
+- script: 'npm install'
+  displayName: 'Install NPM deps'
+- script: 'npm run electron-rebuild'
+  displayName: 'Rebuild native deps for electron'
+- script: 'npm run build'
+  displayName: 'Package VSCode extension'
