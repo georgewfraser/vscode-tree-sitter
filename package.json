@@ -3,14 +3,14 @@
 	"displayName": "Tree Sitter",
 	"description": "Accurate syntax coloring with tree-sitter",
 	"icon": "tree-sitter-small.png",
-	"version": "0.1.8",
+	"version": "0.1.9",
 	"preview": true,
 	"publisher": "georgewfraser",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/georgewfraser/vscode-tree-sitter"
 	},
-    "license": "MIT",
+	"license": "MIT",
 	"engines": {
 		"vscode": "^1.34.0"
 	},
