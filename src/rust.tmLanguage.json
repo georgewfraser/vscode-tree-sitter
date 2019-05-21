@@ -212,6 +212,28 @@
 		"comments": {
 			"patterns": [
 				{
+					"include": "#block_doc_comment"
+				},
+				{
+					"include": "#block_comment"
+				},
+				{
+					"comment": "Single-line documentation comment",
+					"name": "comment.line.documentation.rust",
+					"begin": "//[!/](?=[^/])",
+					"end": "$"
+				},
+				{
+					"comment": "Single-line comment",
+					"name": "comment.line.double-slash.rust",
+					"begin": "//",
+					"end": "$"
+				}
+			]
+		},
+		"block_doc_comment": {
+			"patterns": [
+				{
 					"comment": "Block documentation comment",
 					"name": "comment.block.documentation.rust",
 					"begin": "/\\*[\\*!](?![\\*/])",
@@ -224,7 +246,11 @@
 							"include": "#block_comment"
 						}
 					]
-				},
+				}
+			]
+		},
+		"block_comment": {
+			"patterns": [
 				{
 					"comment": "Block comment",
 					"name": "comment.block.rust",
@@ -238,18 +264,6 @@
 							"include": "#block_comment"
 						}
 					]
-				},
-				{
-					"comment": "Single-line documentation comment",
-					"name": "comment.line.documentation.rust",
-					"begin": "//[!/](?=[^/])",
-					"end": "$"
-				},
-				{
-					"comment": "Single-line comment",
-					"name": "comment.line.double-slash.rust",
-					"begin": "//",
-					"end": "$"
 				}
 			]
 		},
