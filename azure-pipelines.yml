@@ -34,7 +34,7 @@ steps:
 - task: GithubRelease@0 
   displayName: 'Create GitHub Release'      
   inputs:
-    githubConnection: georgewfraser
+    githubConnection: github-write
     repositoryName: georgewfraser/vscode-tree-sitter
     tagSource: manual
     tag: latest
