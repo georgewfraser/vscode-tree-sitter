@@ -29,3 +29,14 @@ steps:
   displayName: 'Rebuild native deps for electron'
 - script: 'npm run build'
   displayName: 'Package VSCode extension'
+- script: 'cp build.vsix build-$(imageName).vsix'
+  displayName: 'copy build.vsix to platform-specific name'
+- task: GithubRelease@0 
+  displayName: 'Create GitHub Release'      
+  inputs:
+    githubConnection: georgewfraser
+    repositoryName: georgewfraser/vscode-tree-sitter
+    tagSource: manual
+    tag: latest
+    assets: |
+         $(Build.ArtifactStagingDirectory)/build-$(imageName).vsix
