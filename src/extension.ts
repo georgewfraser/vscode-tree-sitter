@@ -24,7 +24,7 @@ function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		} else if (x.type == 'field_identifier') {
 			fields.push(x)
 		}
-		for (let child of x.children) {
+		for (const child of x.children) {
 			scan(child)
 		}
 	}
@@ -46,7 +46,7 @@ function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		} else if (x.type == 'property_identifier') {
 			fields.push(x)
 		}
-		for (let child of x.children) {
+		for (const child of x.children) {
 			scan(child)
 		}
 	}
@@ -72,7 +72,7 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		} else if (x.type == 'field_identifier') {
 			fields.push(x)
 		}
-		for (let child of x.children) {
+		for (const child of x.children) {
 			scan(child)
 		}
 	}
@@ -96,7 +96,7 @@ function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		} else if (x.type == 'field_identifier') {
 			fields.push(x)
 		}
-		for (let child of x.children) {
+		for (const child of x.children) {
 			scan(child)
 		}
 	}
@@ -106,7 +106,7 @@ function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
-	for (let visible of editor.visibleRanges) {
+	for (const visible of editor.visibleRanges) {
 		const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
 		if (overlap) return true
 	}
@@ -141,7 +141,7 @@ export function activate(context: VS.ExtensionContext) {
 	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent) {
 		if (edit.contentChanges.length == 0) return
 		const old = trees[edit.document.uri.toString()]
-		for (let e of edit.contentChanges) {
+		for (const e of edit.contentChanges) {
 			const startIndex = e.rangeOffset
 			const oldEndIndex = e.rangeOffset + e.rangeLength
 			const newEndIndex = e.rangeOffset + e.text.length
@@ -176,7 +176,7 @@ export function activate(context: VS.ExtensionContext) {
         color: new VS.ThemeColor('treeSitter.function')
 	})
 	function colorUri(uri: VS.Uri) {
-		for (let editor of VS.window.visibleTextEditors) {
+		for (const editor of VS.window.visibleTextEditors) {
 			if (editor.document.uri == uri) {
 				colorEditor(editor)
 			}
