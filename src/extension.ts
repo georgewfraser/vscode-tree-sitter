@@ -2,7 +2,7 @@ import * as VS from 'vscode'
 import * as Parser from 'tree-sitter'
 
 // Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: { parser: Parser, color: ColorFunction }} = {
+const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
 	'go': createParser('tree-sitter-go', colorGo),
 	'typescript': createParser('tree-sitter-typescript', colorTypescript),
 	'cpp': createParser('tree-sitter-cpp', colorCpp),
