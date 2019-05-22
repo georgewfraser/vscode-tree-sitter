@@ -2,7 +2,7 @@ import * as VS from 'vscode'
 import * as Parser from 'tree-sitter'
 
 // Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: { [id: string]: { parser: Parser, color: ColorFunction } } = {
+const languages: {[id: string]: { parser: Parser, color: ColorFunction }} = {
 	'go': createParser('tree-sitter-go', colorGo),
 	'typescript': createParser('tree-sitter-typescript', colorTypescript),
 	'cpp': createParser('tree-sitter-cpp', colorCpp),
@@ -121,14 +121,14 @@ function createParser(module: string, color: ColorFunction): { parser: Parser, c
 	const lang = require(module)
 	const parser = new Parser()
 	parser.setLanguage(lang)
-	return { parser, color }
+	return {parser, color}
 }
 
 // Called when the extension is first activated by user opening a file with the appropriate language
 export function activate(context: VS.ExtensionContext) {
 	console.log("Activating tree-sitter...")
 	// Parse of all visible documents
-	const trees: { [uri: string]: Parser.Tree } = {}
+	const trees: {[uri: string]: Parser.Tree} = {}
 	function open(editor: VS.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
@@ -155,14 +155,14 @@ export function activate(context: VS.ExtensionContext) {
 			const startPosition = asPoint(startPos)
 			const oldEndPosition = asPoint(oldEndPos)
 			const newEndPosition = asPoint(newEndPos)
-			const delta = { startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition }
+			const delta = {startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition}
 			old.edit(delta)
 		}
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
 	}
 	function asPoint(pos: VS.Position): Parser.Point {
-		return { row: pos.line, column: pos.character }
+		return {row: pos.line, column: pos.character}
 	}
 	function close(doc: VS.TextDocument) {
 		if (doc.languageId == 'go') {
