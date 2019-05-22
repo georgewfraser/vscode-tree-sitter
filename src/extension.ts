@@ -141,29 +141,21 @@ export function activate(context: VS.ExtensionContext) {
 	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent) {
 		if (edit.contentChanges.length == 0) return
 		const old = trees[edit.document.uri.toString()]
-		const startIndex = Math.min(...edit.contentChanges.map(getStartIndex))
-		const oldEndIndex = Math.max(...edit.contentChanges.map(getOldEndIndex))
-		const newEndIndex = Math.max(...edit.contentChanges.map(getNewEndIndex))
-		const startPos = edit.document.positionAt(startIndex)
-		const oldEndPos = edit.document.positionAt(oldEndIndex)
-		const newEndPos = edit.document.positionAt(newEndIndex)
-		const startPosition = asPoint(startPos)
-		const oldEndPosition = asPoint(oldEndPos)
-		const newEndPosition = asPoint(newEndPos)
-		const delta = {startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition}
-		// console.log(edit.document.uri.toString(), delta)
-		old.edit(delta)
+		for (let e of edit.contentChanges) {
+			const startIndex = e.rangeOffset
+			const oldEndIndex = e.rangeOffset + e.rangeLength
+			const newEndIndex = e.rangeOffset + e.text.length
+			const startPos = edit.document.positionAt(startIndex)
+			const oldEndPos = edit.document.positionAt(oldEndIndex)
+			const newEndPos = edit.document.positionAt(newEndIndex)
+			const startPosition = asPoint(startPos)
+			const oldEndPosition = asPoint(oldEndPos)
+			const newEndPosition = asPoint(newEndPos)
+			const delta = {startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition}
+			old.edit(delta)
+		}
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
-	}
-	function getStartIndex(edit: VS.TextDocumentContentChangeEvent): number {
-		return edit.rangeOffset
-	}
-	function getOldEndIndex(edit: VS.TextDocumentContentChangeEvent): number {
-		return edit.rangeOffset + edit.rangeLength
-	}
-	function getNewEndIndex(edit: VS.TextDocumentContentChangeEvent): number {
-		return edit.rangeOffset + edit.text.length
 	}
 	function asPoint(pos: VS.Position): Parser.Point {
 		return {row: pos.line, column: pos.character}
