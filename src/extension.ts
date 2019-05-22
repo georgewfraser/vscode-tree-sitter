@@ -111,13 +111,13 @@ function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 
 function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	for (const visible of editor.visibleRanges) {
-		const overlap = x.startPosition.row <= visible.end.line + 1 && visible.start.line - 1 <= x.endPosition.row
+		const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
 		if (overlap) return true
 	}
 	return false
 }
 
-function createParser(module: string, color: ColorFunction): { parser: Parser, color: ColorFunction } {
+function createParser(module: string, color: ColorFunction): {parser: Parser, color: ColorFunction} {
 	const lang = require(module)
 	const parser = new Parser()
 	parser.setLanguage(lang)
