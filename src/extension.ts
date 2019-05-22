@@ -9,18 +9,20 @@ const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
 	'rust': createParser('tree-sitter-rust', colorRust),
 }
 
+type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
+
 function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
-	var types: VS.Range[] = []
-	var fields: VS.Range[] = []
-	var functions: VS.Range[] = []
+	var types: Parser.SyntaxNode[] = []
+	var fields: Parser.SyntaxNode[] = []
+	var functions: Parser.SyntaxNode[] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'type_identifier') {
-			types.push(range(x))
+			types.push(x)
 		} else if (x.type == 'field_identifier') {
-			fields.push(range(x))
+			fields.push(x)
 		}
 		for (let child of x.children) {
 			scan(child)
@@ -32,17 +34,17 @@ function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
-	var types: VS.Range[] = []
-	var fields: VS.Range[] = []
-	var functions: VS.Range[] = []
+	var types: Parser.SyntaxNode[] = []
+	var fields: Parser.SyntaxNode[] = []
+	var functions: Parser.SyntaxNode[] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'type_identifier' || x.type == 'predefined_type') {
-			types.push(range(x))
+			types.push(x)
 		} else if (x.type == 'property_identifier') {
-			fields.push(range(x))
+			fields.push(x)
 		}
 		for (let child of x.children) {
 			scan(child)
@@ -54,21 +56,21 @@ function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
-	var types: VS.Range[] = []
-	var fields: VS.Range[] = []
-	var functions: VS.Range[] = []
+	var types: Parser.SyntaxNode[] = []
+	var fields: Parser.SyntaxNode[] = []
+	var functions: Parser.SyntaxNode[] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
-			fields.push(range(x))
+			fields.push(x)
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
-			types.push(range(x))
+			types.push(x)
 		} else if (x.type == 'field_identifier') {
-			fields.push(range(x))
+			fields.push(x)
 		}
 		for (let child of x.children) {
 			scan(child)
@@ -80,19 +82,19 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
-	var types: VS.Range[] = []
-	var fields: VS.Range[] = []
-	var functions: VS.Range[] = []
+	var types: Parser.SyntaxNode[] = []
+	var fields: Parser.SyntaxNode[] = []
+	var functions: Parser.SyntaxNode[] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declarator') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
-			functions.push(range(x))
+			functions.push(x)
 		} else if (x.type == 'type_identifier') {
-			types.push(range(x))
+			types.push(x)
 		} else if (x.type == 'field_identifier') {
-			fields.push(range(x))
+			fields.push(x)
 		}
 		for (let child of x.children) {
 			scan(child)
@@ -110,12 +112,6 @@ function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	}
 	return false
 }
-
-function range(x: Parser.SyntaxNode): VS.Range {
-	return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
-}
-
-type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: VS.Range[], fields: VS.Range[], functions: VS.Range[]}
 
 function createParser(module: string, color: ColorFunction): {parser: Parser, color: ColorFunction} {
 	const lang = require(module)
@@ -200,9 +196,9 @@ export function activate(context: VS.ExtensionContext) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
 		const {types, fields, functions} = language.color(t.rootNode, editor)
-		editor.setDecorations(typeStyle, types)
-		editor.setDecorations(fieldStyle, fields)
-		editor.setDecorations(functionStyle, functions)
+		editor.setDecorations(typeStyle, types.map(range))
+		editor.setDecorations(fieldStyle, fields.map(range))
+		editor.setDecorations(functionStyle, functions.map(range))
 		// console.log(t.rootNode.toString())
 	}
 	VS.window.visibleTextEditors.forEach(open)
@@ -210,6 +206,10 @@ export function activate(context: VS.ExtensionContext) {
 	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
 	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
+}
+
+function range(x: Parser.SyntaxNode): VS.Range {
+	return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
 }
 
 // this method is called when your extension is deactivated
