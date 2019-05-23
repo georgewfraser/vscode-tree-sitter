@@ -32,7 +32,7 @@
 		"keyword": {
 			"patterns": [
 				{
-					"match": "\\b(declare|module|namespace|interface|type)\\s+(?=\\w)",
+					"match": "\\b(declare(\\s+module)?|module|namespace|interface|type)\\s+(?=\\w)",
 					"captures": {
 						"1": {
 							"name": "keyword.other.ts"
@@ -40,7 +40,7 @@
 					}
 				},
 				{
-					"match": "\\b(abstract|arguments|as|class|const|enum|export|extends|from|function|implements|import|let|package|private|protected|public|static|super|this|var|void|with)\\b",
+					"match": "\\b(abstract|arguments|as|async|class|const|enum|export|extends|from|function|implements|import|let|package|private|protected|public|static|super|this|var|void|with)\\b",
 					"name": "keyword.other.ts"
 				},
 				{

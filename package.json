@@ -83,13 +83,16 @@
 		"watch": "tsc -watch -p ./",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test",
-		"electron-rebuild": "electron-rebuild -v 3.1.8",
 		"build": "vsce package -o build.vsix"
 	},
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
-		"electron-rebuild": "^1.8.4",
+		"tree-sitter-cli": "^0.14.7",
+		"tree-sitter-cpp": "^0.13.15",
+		"tree-sitter-go": "^0.13.3",
+		"tree-sitter-rust": "^0.13.7",
+		"tree-sitter-typescript": "^0.13.6",
 		"tslint": "^5.8.0",
 		"typescript": "^3.1.4",
 		"vsce": "^1.61.0",
@@ -97,11 +100,6 @@
 	},
 	"dependencies": {
 		"tar": ">=4.4.2",
-		"tree-sitter": "^0.15.1",
-		"tree-sitter-c": "^0.13.13",
-		"tree-sitter-cpp": "^0.13.15",
-		"tree-sitter-go": "^0.13.3",
-		"tree-sitter-rust": "^0.13.7",
-		"tree-sitter-typescript": "^0.13.6"
+		"web-tree-sitter": "^0.15.2"
 	}
 }

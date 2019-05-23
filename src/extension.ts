@@ -1,34 +1,30 @@
 import * as VS from 'vscode'
-import * as Parser from 'tree-sitter'
-
-// Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
-	'go': createParser('tree-sitter-go', colorGo),
-	'typescript': createParser('tree-sitter-typescript', colorTypescript),
-	'cpp': createParser('tree-sitter-cpp', colorCpp),
-	'rust': createParser('tree-sitter-rust', colorRust),
-}
+import * as Parser from 'web-tree-sitter'
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
-
 
 function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	// Guess package names based on paths
 	var packages: {[id: string]: boolean} = {}
+	function scanImport(x: Parser.SyntaxNode) {
+		if (x.type == 'import_spec') {
+			const str = x.firstChild!.text
+			const path = str.substring(1, str.length - 1)
+			const parts = path.split('/')
+			const last = parts[parts.length - 1]
+			packages[last] = true
+		}
+		for (const child of x.children) {
+			scanImport(child)
+		}
+	}
 	for (const decl of x.children) {
 		if (decl.type == 'const_declaration' || decl.type == 'var_declaration' || decl.type == 'function_declaration') {
 			console.log('encountered', decl.type)
 			break
 		}
 		if (decl.type == 'import_declaration') {
-			for (const i of decl.descendantsOfType('import_spec')) {
-				const str = i.firstChild!.text
-				const path = str.substring(1, str.length - 1)
-				const parts = path.split('/')
-				const last = parts[parts.length - 1]
-				packages[last] = true
-			}
-			continue
+			scanImport(decl)
 		}
 	}
 	var types: Parser.SyntaxNode[] = []
@@ -92,6 +88,14 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		}
 		return false
 	}
+	function scanUse(x: Parser.SyntaxNode) {
+		if (x.type == 'identifier' && looksLikeType(x.text)) {
+			types.push(x)
+		}
+		for (const child of x.children) {
+			scanUse(child)
+		}
+	}
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
@@ -101,11 +105,7 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
 			functions.push(x)
 		} else if (x.type == 'use_declaration') {
-			for (const id of x.descendantsOfType('identifier')) {
-				if (looksLikeType(id.text)) {
-					types.push(id)
-				}
-			}
+			scanUse(x)
 			return
 		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
 			types.push(x)
@@ -153,16 +153,29 @@ function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return false
 }
 
-function createParser(module: string, color: ColorFunction): {parser: Parser, color: ColorFunction} {
-	const lang = require(module)
-	const parser = new Parser()
-	parser.setLanguage(lang)
-	return {parser, color}
-}
+// For some reason this crashes if we put it inside activate
+const initParser = Parser.init()
 
 // Called when the extension is first activated by user opening a file with the appropriate language
-export function activate(context: VS.ExtensionContext) {
+export async function activate(context: VS.ExtensionContext) {
 	console.log("Activating tree-sitter...")
+	async function createParser(module: string, color: ColorFunction) {
+		await initParser
+		const wasm = `${context.extensionPath}/parsers/${module}.wasm`
+		console.log('load', wasm)
+		const lang = await Parser.Language.load(wasm)
+		const parser = new Parser()
+		parser.setLanguage(lang)
+		return {parser, color}
+	}
+	// Be sure to declare the language in package.json and include a minimalist grammar.
+	const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
+		// TODO this is not coloring correctly
+		'go': await createParser('tree-sitter-go', colorGo),
+		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
+		'cpp': await createParser('tree-sitter-cpp', colorCpp),
+		'rust': await createParser('tree-sitter-rust', colorRust),
+	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
 	function open(editor: VS.TextEditor) {
