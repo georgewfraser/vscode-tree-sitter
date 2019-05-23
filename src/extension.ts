@@ -153,7 +153,7 @@ function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 // For some reason this crashes if we put it inside activate
-const initParser = Parser.init()
+const initParser = Parser.init() // TODO this isn't a field, suppress package member coloring like Go
 
 // Called when the extension is first activated by user opening a file with the appropriate language
 export async function activate(context: VS.ExtensionContext) {
@@ -211,9 +211,7 @@ export async function activate(context: VS.ExtensionContext) {
 		return {row: pos.line, column: pos.character}
 	}
 	function close(doc: VS.TextDocument) {
-		if (doc.languageId == 'go') {
-			delete trees[doc.uri.toString()]
-		}
+		delete trees[doc.uri.toString()]
 	}
 	// Apply themeable colors
 	const typeStyle = VS.window.createTextEditorDecorationType({
