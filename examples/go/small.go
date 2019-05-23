@@ -1,5 +1,7 @@
 package example
 
+import "fmt"
+
 type Person struct {
 	name string
 	mom  *Person
@@ -18,3 +20,4 @@ func (self *Person) GetMom() *Person {
 }
 
 var p = NewPerson("foo", nil)
+var _ = fmt.Println(p)

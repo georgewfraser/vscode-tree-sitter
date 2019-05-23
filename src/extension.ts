@@ -11,17 +11,42 @@ const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
 
+
 function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	// Guess package names based on paths
+	var packages: {[id: string]: boolean} = {}
+	for (const decl of x.children) {
+		if (decl.type == 'const_declaration' || decl.type == 'var_declaration' || decl.type == 'function_declaration') {
+			console.log('encountered', decl.type)
+			break
+		}
+		if (decl.type == 'import_declaration') {
+			for (const i of decl.descendantsOfType('import_spec')) {
+				const str = i.firstChild!.text
+				const path = str.substring(1, str.length - 1)
+				const parts = path.split('/')
+				const last = parts[parts.length - 1]
+				packages[last] = true
+			}
+			continue
+		}
+	}
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
+			// func f() { ... }
 			functions.push(x)
 		} else if (x.type == 'type_identifier') {
+			// x: type
 			types.push(x)
+		} else if (x.type == 'selector_expression' && x.firstChild!.type == 'identifier' && packages[x.firstChild!.text]) {
+			// pkg.member
+			return
 		} else if (x.type == 'field_identifier') {
+			// obj.member
 			fields.push(x)
 		}
 		for (const child of x.children) {
