@@ -168,7 +168,6 @@ export async function activate(context: VS.ExtensionContext) {
 	}
 	// Be sure to declare the language in package.json and include a minimalist grammar.
 	const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
-		// TODO this is not coloring correctly
 		'go': await createParser('tree-sitter-go', colorGo),
 		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
 		'cpp': await createParser('tree-sitter-cpp', colorCpp),

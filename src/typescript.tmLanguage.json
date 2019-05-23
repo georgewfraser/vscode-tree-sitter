@@ -7,28 +7,35 @@
 	],
 	"patterns": [
 		{
-			"include": "#keyword"
-		},
-		{
-			"include": "#decorator"
-		},
-		{
-			"include": "#regex"
-		},
-		{
-			"include": "#string"
-		},
-		{
-			"include": "#template"
-		},
-		{
-			"include": "#literal"
-		},
-		{
-			"include": "#comment"
+			"include": "#expression"
 		}
 	],
 	"repository": {
+		"expression": {
+			"patterns": [
+				{
+					"include": "#keyword"
+				},
+				{
+					"include": "#decorator"
+				},
+				{
+					"include": "#regex"
+				},
+				{
+					"include": "#string"
+				},
+				{
+					"include": "#template"
+				},
+				{
+					"include": "#literal"
+				},
+				{
+					"include": "#comment"
+				}
+			]
+		},
 		"keyword": {
 			"patterns": [
 				{

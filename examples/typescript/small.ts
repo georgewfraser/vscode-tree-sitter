@@ -5,3 +5,5 @@ class Foo {
 function foo() {
     
 }
+
+const s = `${foo()}`
