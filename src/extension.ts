@@ -20,7 +20,6 @@ function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	}
 	for (const decl of x.children) {
 		if (decl.type == 'const_declaration' || decl.type == 'var_declaration' || decl.type == 'function_declaration') {
-			console.log('encountered', decl.type)
 			break
 		}
 		if (decl.type == 'import_declaration') {
@@ -162,7 +161,6 @@ export async function activate(context: VS.ExtensionContext) {
 	async function createParser(module: string, color: ColorFunction) {
 		await initParser
 		const wasm = `${context.extensionPath}/parsers/${module}.wasm`
-		console.log('load', wasm)
 		const lang = await Parser.Language.load(wasm)
 		const parser = new Parser()
 		parser.setLanguage(lang)
@@ -244,7 +242,6 @@ export async function activate(context: VS.ExtensionContext) {
 		editor.setDecorations(typeStyle, types.map(range))
 		editor.setDecorations(fieldStyle, fields.map(range))
 		editor.setDecorations(functionStyle, functions.map(range))
-		// console.log(t.rootNode.toString())
 	}
 	VS.window.visibleTextEditors.forEach(open)
 	context.subscriptions.push(VS.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
