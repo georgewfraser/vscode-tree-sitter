@@ -6,17 +6,8 @@
 trigger:
 - master
 
-strategy:
-  matrix:
-    linux:
-      imageName: 'ubuntu-16.04'
-    mac:
-      imageName: 'macOS-10.14'
-    windows:
-      imageName: 'vs2017-win2016'
-
 pool:
-  vmImage: $(imageName)
+  vmImage: ubuntu-16.04
 
 steps:
 - task: NodeTool@0
@@ -25,12 +16,9 @@ steps:
   displayName: 'Install Node.js'
 - script: 'npm install'
   displayName: 'Install NPM deps'
-- script: 'npm run electron-rebuild'
-  displayName: 'Rebuild native deps for electron'
-- script: 'npm run build'
-  displayName: 'Package VSCode extension'
-- script: 'cp build.vsix build-$(imageName).vsix'
-  displayName: 'Copy build.vsix to platform-specific name'
+- script: './scripts/gen-parsers.sh'
+  displayName: 'Build parsers to .wasm files'
+- script: 'zip -r parsers.zip parsers'
 - task: GithubRelease@0 
   displayName: 'Create GitHub Release'      
   inputs:
@@ -40,5 +28,4 @@ steps:
     tag: latest
     action: edit
     assetUploadMode: replace
-    assets: |
-         build-$(imageName).vsix
+    assets: parsers.zip
