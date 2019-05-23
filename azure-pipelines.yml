@@ -19,6 +19,7 @@ steps:
 - script: './scripts/gen-parsers.sh'
   displayName: 'Build parsers to .wasm files'
 - script: 'zip -r parsers.zip parsers'
+  displayName: 'Zip parsers.zip'
 - task: GithubRelease@0 
   displayName: 'Create GitHub Release'      
   inputs:
