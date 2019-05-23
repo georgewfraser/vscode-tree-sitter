@@ -84,6 +84,14 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
+	function looksLikeType(id: string) {
+		if (id.length == 0) return false
+		if (id[0] != id[0].toUpperCase()) return false
+		for (const c of id) {
+			if (c.toLowerCase() == c) return true
+		}
+		return false
+	}
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
@@ -92,6 +100,13 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 			functions.push(x)
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
 			functions.push(x)
+		} else if (x.type == 'use_declaration') {
+			for (const id of x.descendantsOfType('identifier')) {
+				if (looksLikeType(id.text)) {
+					types.push(id)
+				}
+			}
+			return
 		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
 			types.push(x)
 		} else if (x.type == 'field_identifier') {
