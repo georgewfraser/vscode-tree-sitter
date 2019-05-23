@@ -54,6 +54,11 @@
 				{
 					"match": "\\b(await|break|case|catch|continue|debugger|default|delete|do|in|of|else|eval|finally|for|if|instanceof|new|return|switch|throw|try|typeof|while|yield)\\b",
 					"name": "keyword.control.ts"
+				},
+				{
+					"comment": "Terminator",
+					"match": ";",
+					"name": "keyword.other.semi.go"
 				}
 			]
 		},

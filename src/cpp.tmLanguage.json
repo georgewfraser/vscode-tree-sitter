@@ -138,6 +138,11 @@
 							"name": "keyword.control.cpp"
 						}
 					}
+				},
+				{
+					"comment": "Terminator",
+					"match": ";",
+					"name": "keyword.other.semi.go"
 				}
 			]
 		},

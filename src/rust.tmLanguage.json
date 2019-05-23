@@ -140,6 +140,11 @@
 					"comment": "Comparison operator (second group because of regex precedence)",
 					"name": "keyword.operator.comparison.rust",
 					"match": "(<=|>=|<|>)"
+				},
+				{
+					"comment": "Terminator",
+					"match": ";",
+					"name": "keyword.other.semi.go"
 				}
 			]
 		},
