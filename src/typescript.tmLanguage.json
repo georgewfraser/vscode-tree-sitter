@@ -32,7 +32,15 @@
 		"keyword": {
 			"patterns": [
 				{
-					"match": "\\b(declare(\\s+module)?|module|namespace|interface|type)\\s+(?=\\w)",
+					"match": "\\b(module)\\s+(?=[\\w'\"])",
+					"captures": {
+						"1": {
+							"name": "keyword.other.ts"
+						}
+					}
+				},
+				{
+					"match": "\\b(declare|namespace|interface|type)\\s+(?=\\w)",
 					"captures": {
 						"1": {
 							"name": "keyword.other.ts"
