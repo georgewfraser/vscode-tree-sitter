@@ -21,3 +21,7 @@ func (self *Person) GetMom() *Person {
 
 var p = NewPerson("foo", nil)
 var _ = fmt.Println(p)
+
+func f(fmt Person) string {
+	return fmt.name // TODO this should be a field because fmt shadows fmt
+}
