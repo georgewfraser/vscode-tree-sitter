@@ -126,6 +126,14 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	return colors
 }
 
+function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
+	const colors: [Parser.SyntaxNode, string][] = []
+	
+	// TODO
+
+	return colors
+}
+
 function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	const colors: [Parser.SyntaxNode, string][] = []
 	function looksLikeType(id: string) {
@@ -285,6 +293,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
 		'cpp': await createParser('tree-sitter-cpp', colorCpp),
 		'rust': await createParser('tree-sitter-rust', colorRust),
+		'ruby': await createParser('tree-sitter-rust', colorRuby),
 	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}

@@ -8,6 +8,7 @@ set -e
 # Build parsers
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-go
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-cpp
+./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-ruby
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-rust
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-typescript
 
