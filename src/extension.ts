@@ -1,5 +1,6 @@
 import * as VS from 'vscode'
 import * as Parser from 'web-tree-sitter'
+import * as Path from 'path'
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
 
@@ -221,7 +222,8 @@ export async function activate(context: VS.ExtensionContext) {
 	console.log("Activating tree-sitter...")
 	async function createParser(module: string, color: ColorFunction) {
 		await initParser
-		const wasm = `${context.extensionPath}/parsers/${module}.wasm`
+		const path = Path.join(context.extensionPath, 'parsers', module + '.wasm')
+		const wasm = Path.relative(process.cwd(), path)
 		const lang = await Parser.Language.load(wasm)
 		const parser = new Parser()
 		parser.setLanguage(lang)
