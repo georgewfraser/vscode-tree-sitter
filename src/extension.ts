@@ -3,7 +3,7 @@ import * as Parser from 'web-tree-sitter'
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
 
-function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function colorGo(root: Parser.SyntaxNode, editor: VS.TextEditor) {
 	// Guess package names based on paths
 	var packages: {[id: string]: boolean} = {}
 	function scanImport(x: Parser.SyntaxNode) {
@@ -18,37 +18,90 @@ function colorGo(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 			scanImport(child)
 		}
 	}
-	for (const decl of x.children) {
-		if (decl.type == 'const_declaration' || decl.type == 'var_declaration' || decl.type == 'function_declaration') {
-			break
+	// Keep track of local vars that shadow packages
+	class Scope {
+		locals: {[id: string]: boolean} = {}
+		parent: Scope|null
+	
+		constructor(parent: Scope|null) {
+			this.parent = parent
 		}
-		if (decl.type == 'import_declaration') {
-			scanImport(decl)
+	
+		isLocal(id: string): boolean {
+			if (this.locals[id]) return true
+			if (this.parent != null) return this.parent.isLocal(id)
+			return false
+		}
+
+		isPackage(id: string): boolean {
+			return packages[id] && !this.isLocal(id)
+		}
+
+		isRoot(): boolean {
+			return this.parent == null
 		}
 	}
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, editor)) return
+	function scanRoot(root: Parser.SyntaxNode) {
+		const scope = new Scope(null)
+		for (const decl of root.children) {
+			if (decl.type == 'import_declaration') {
+				scanImport(decl)
+			}
+			// If declaration is visible, color it
+			if (isVisible(decl, editor)) {
+				scan(decl, scope)
+			}
+			// Stop after the visible range
+			if (isAfterVisible(decl, editor)) return
+		}
+	}
+	function scan(x: Parser.SyntaxNode, scope: Scope) {
+		// Stop coloring function bodies after the visible range
+		if (isAfterVisible(x, editor)) return
+		// Add colors
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
 			// func f() { ... }
 			functions.push(x)
 		} else if (x.type == 'type_identifier') {
 			// x: type
 			types.push(x)
-		} else if (x.type == 'selector_expression' && x.firstChild!.type == 'identifier' && packages[x.firstChild!.text]) {
+		} else if (x.type == 'selector_expression' && x.firstChild!.type == 'identifier' && scope.isPackage(x.firstChild!.text)) {
 			// pkg.member
 			return
 		} else if (x.type == 'field_identifier') {
 			// obj.member
 			fields.push(x)
 		}
+		// Add locals to scope
+		if (!scope.isRoot() && ['parameter_declaration', 'var_spec', 'const_spec'].includes(x.type)) {
+			for (const id of x.children) {
+				if (id.type == 'identifier') {
+					scope.locals[id.text] = true
+				}
+			}
+		} else if (!scope.isRoot() && ['short_var_declaration', 'range_clause'].includes(x.type)) {
+			for (const id of x.firstChild!.children) {
+				if (id.type == 'identifier') {
+					scope.locals[id.text] = true
+				}
+			}
+		}
+		// Define new scope
+		if (['function_declaration', 'method_declaration', 'func_literal', 'block'].includes(x.type)) {
+			scope = new Scope(scope)
+		}
+		// Recurse
+		scanChildren(x, scope)
+	}
+	function scanChildren(x: Parser.SyntaxNode, scope: Scope) {
 		for (const child of x.children) {
-			scan(child)
+			scan(child, scope)
 		}
 	}
-	scan(x)
+	scanRoot(root)
 
 	return {types, fields, functions}
 }
@@ -150,6 +203,14 @@ function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 		if (overlap) return true
 	}
 	return false
+}
+function isAfterVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+	for (const visible of editor.visibleRanges) {
+		if (x.startPosition.row <= visible.end.line+1) {
+			return false
+		}
+	}
+	return true
 }
 
 // For some reason this crashes if we put it inside activate
