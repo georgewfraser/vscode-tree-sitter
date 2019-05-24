@@ -128,8 +128,23 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 
 function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	const colors: [Parser.SyntaxNode, string][] = []
-	
-	// TODO
+
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, editor)) return
+		if (x.type == 'method') {
+			colors.push([x, 'variable'])
+		} else if (x.type == 'singleton_method') {
+			colors.push([x, 'variable'])
+		} else if (x.type == 'instance_variable') {
+			colors.push([x, 'variable'])
+		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
+			colors.push([x, 'variable'])
+		}
+		for (const child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
 
 	return colors
 }
@@ -293,7 +308,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
 		'cpp': await createParser('tree-sitter-cpp', colorCpp),
 		'rust': await createParser('tree-sitter-rust', colorRust),
-		'ruby': await createParser('tree-sitter-rust', colorRuby),
+		'ruby': await createParser('tree-sitter-ruby', colorRuby),
 	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}

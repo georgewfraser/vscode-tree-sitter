@@ -39,7 +39,7 @@
         {
             "begin": ":'",
             "end": "'",
-            "name": "meta.symbol.ruby",
+            "name": "constant.numeric.symbol.ruby",
             "patterns": [
                 {
                     "match": "\\\\['\\\\]",
@@ -50,7 +50,7 @@
         {
             "begin": ":\"",
             "end": "\"",
-            "name": "meta.symbol.ruby",
+            "name": "constant.numeric.symbol.ruby",
             "patterns": [
                 {
                     "include": "#interpolated_ruby"
@@ -114,9 +114,6 @@
             "captures": {
                 "1": {
                     "name": "string.regexp.classic.ruby"
-                },
-                "2": {
-                    "name": "punctuation.definition.string.ruby"
                 }
             },
             "comment":
@@ -130,23 +127,13 @@
             ]
         },
         {
-            "captures": {
-                "1": {
-                    "name": "punctuation.definition.constant.ruby"
-                }
-            },
             "comment": "symbols",
             "match":
                 "(?<!:)(:)(?>[a-zA-Z_]\\w*(?>[?!]|=(?![>=]))?|===?|>[>=]?|<=>|<[<=]?|[%&`/\\|]|\\*\\*?|=?~|[-+]@?|\\[\\]=?|(@@?|\\$)[a-zA-Z_]\\w*)",
-            "name": "constant.other.symbol.ruby"
+            "name": "constant.numeric.symbol.ruby"
         },
         {
             "begin": "^=begin",
-            "captures": {
-                "0": {
-                    "name": "punctuation.definition.comment.ruby"
-                }
-            },
             "comment": "multiline comments",
             "end": "^=end",
             "name": "comment.block.documentation.ruby"
@@ -162,11 +149,6 @@
             "patterns": [
                 {
                     "begin": "#",
-                    "beginCaptures": {
-                        "0": {
-                            "name": "punctuation.definition.comment.ruby"
-                        }
-                    },
                     "end": "\\n",
                     "name": "comment.line.number-sign.ruby"
                 }

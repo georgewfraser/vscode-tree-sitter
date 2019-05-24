@@ -50,3 +50,7 @@ rescue StandardError => msg
 end
 
 print "D: ", a.get, " ", b.get,"\n";
+
+x = :foo
+y = :'bar'
+z = :"doh"
