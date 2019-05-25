@@ -132,13 +132,15 @@ function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'method') {
-			colors.push([x, 'variable'])
+			colors.push([x.children[1]!, 'entity.name.function'])
 		} else if (x.type == 'singleton_method') {
-			colors.push([x, 'variable'])
+			colors.push([x.children[3], 'entity.name.function'])
 		} else if (x.type == 'instance_variable') {
 			colors.push([x, 'variable'])
 		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
-			colors.push([x, 'variable'])
+			colors.push([x.lastChild!, 'entity.name.function'])
+		}else if (x.type == 'method_call' && x.firstChild!.type == 'identifier') {
+			colors.push([x.firstChild!, 'entity.name.function'])
 		}
 		for (const child of x.children) {
 			scan(child)
