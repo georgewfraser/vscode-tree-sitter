@@ -18,22 +18,6 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ![Typescript](./screenshots/typescript.png)
 
-## Color theme compatibility
-
-If you are using a color theme other than `Light+`, `Dark+`, or `High contrast`, the colors applied to functions, fields, and types by tree-sitter will not match the colors of your theme. This is because it is [currently not possible to access VSCode syntax colors programatically](https://github.com/microsoft/vscode/issues/32813#issuecomment-488572556). As a workaround, you can add a section to your user settings that looks like:
-
-```json
-{
-    "workbench.colorCustomizations": {
-        "treeSitter.field": "#ff0000",
-        "treeSitter.function": "#ff0000",
-        "treeSitter.type": "#ff0000"
-    }
-}
-```
-
-replacing `"#ff0000"` with colors that match your theme.
-
 ## Contributing
 
 ### Fixing colorization of an existing language

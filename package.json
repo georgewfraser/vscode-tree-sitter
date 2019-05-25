@@ -46,35 +46,6 @@
 				"scopeName": "source.rust",
 				"path": "./src/rust.tmLanguage.json"
 			}
-		],
-		"colors": [
-			{
-				"id": "treeSitter.field",
-				"description": "Color for fields",
-				"defaults": {
-					"dark": "#9CDCFE",
-					"light": "#001080",
-					"highContrast": "#4EC9B0"
-				}
-			},
-			{
-				"id": "treeSitter.type",
-				"description": "Color for types",
-				"defaults": {
-					"dark": "#4EC9B0",
-					"light": "#267f99",
-					"highContrast": "#4EC9B0"
-				}
-			},
-			{
-				"id": "treeSitter.function",
-				"description": "Color for functions",
-				"defaults": {
-					"dark": "#DCDCAA",
-					"light": "#795E26",
-					"highContrast": "#DCDCAA"
-				}
-			}
 		]
 	},
 	"scripts": {
@@ -99,6 +70,7 @@
 		"vscode": "^1.1.25"
 	},
 	"dependencies": {
+		"jsonc-parser": "^2.1.0",
 		"tar": ">=4.4.2",
 		"web-tree-sitter": "^0.15.2"
 	}

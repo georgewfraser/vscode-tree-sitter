@@ -1,6 +1,7 @@
 import * as VS from 'vscode'
 import * as Parser from 'web-tree-sitter'
 import * as Path from 'path'
+import * as colors from './colors'
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
 
@@ -214,14 +215,83 @@ function isAfterVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return true
 }
 
+const defaultScopes = new Map<string, {dark:string, light:string}>()
+const activeScopes = new Map<string, VS.TextEditorDecorationType>()
+
+// Initialize scopes
+function initScope(scope: string, dark: string, light: string) {
+	const style = VS.window.createTextEditorDecorationType({
+		dark: {color: dark},
+		light: {color: light}
+	})
+	defaultScopes.set(scope, {dark, light})
+	activeScopes.set(scope, style)
+}
+initScope('entity.name.type', "#4EC9B0", "#267f99")
+initScope('variable', "#9CDCFE", "#001080")
+initScope('entity.name.function', "#DCDCAA", "#795E26")
+
+// Load styles from the current active theme
+async function loadStyles() {
+	await colors.load()
+	// Clear old styles
+	for (let style of activeScopes.values()) {
+		style.dispose()
+	}
+	// Install new styles
+	for (let scope of activeScopes.keys()) {
+		const textmate = colors.find(scope)
+		if (textmate != null) {
+			activeScopes.set(scope, createDecorationFromTextmate(textmate))
+		} else {
+			console.warn('no style for', scope)
+			const {dark, light} = defaultScopes.get(scope)!
+			const style = VS.window.createTextEditorDecorationType({
+				dark: {color: dark},
+				light: {color: light}
+			})
+			activeScopes.set(scope, style)
+		}
+	}
+}
+function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): VS.TextEditorDecorationType {
+	let options: VS.DecorationRenderOptions = {}
+	options.rangeBehavior = VS.DecorationRangeBehavior.OpenOpen
+	if (themeStyle.foreground) {
+		options.color = themeStyle.foreground
+	}
+	if (themeStyle.background) {
+		options.backgroundColor = themeStyle.background
+	}
+	if (themeStyle.fontStyle) {
+		let parts: string[] = themeStyle.fontStyle.split(" ")
+		parts.forEach((part) => {
+			switch (part) {
+				case "italic":
+					options.fontStyle = "italic"
+					break
+				case "bold":
+					options.fontWeight = "bold"
+					break
+				case "underline":
+					options.textDecoration = "underline"
+					break
+				default:
+					break
+			}
+		})
+	}
+	return VS.window.createTextEditorDecorationType(options)
+}
+
 // For some reason this crashes if we put it inside activate
 const initParser = Parser.init() // TODO this isn't a field, suppress package member coloring like Go
 
 // Called when the extension is first activated by user opening a file with the appropriate language
 export async function activate(context: VS.ExtensionContext) {
 	console.log("Activating tree-sitter...")
+	// Load parser from `parsers/module.wasm`
 	async function createParser(module: string, color: ColorFunction) {
-		await initParser
 		const path = Path.join(context.extensionPath, 'parsers', module + '.wasm')
 		const wasm = Path.relative(process.cwd(), path)
 		const lang = await Parser.Language.load(wasm)
@@ -276,16 +346,6 @@ export async function activate(context: VS.ExtensionContext) {
 	function close(doc: VS.TextDocument) {
 		delete trees[doc.uri.toString()]
 	}
-	// Apply themeable colors
-	const typeStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitter.type')
-	})
-	const fieldStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitter.field')
-	})
-	const functionStyle = VS.window.createTextEditorDecorationType({
-        color: new VS.ThemeColor('treeSitter.function')
-	})
 	function colorUri(uri: VS.Uri) {
 		for (const editor of VS.window.visibleTextEditors) {
 			if (editor.document.uri == uri) {
@@ -299,15 +359,34 @@ export async function activate(context: VS.ExtensionContext) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
 		const {types, fields, functions} = language.color(t.rootNode, editor)
-		editor.setDecorations(typeStyle, types.map(range))
-		editor.setDecorations(fieldStyle, fields.map(range))
-		editor.setDecorations(functionStyle, functions.map(range))
+		editor.setDecorations(activeScopes.get('entity.name.type')!, types.map(range))
+		editor.setDecorations(activeScopes.get('variable')!, fields.map(range))
+		editor.setDecorations(activeScopes.get('entity.name.function')!, functions.map(range))
 	}
-	VS.window.visibleTextEditors.forEach(open)
+	function colorAllOpen() {
+		VS.window.visibleTextEditors.forEach(open)
+	}
+	// Load active color theme
+	async function onChangeConfiguration(event: VS.ConfigurationChangeEvent) {
+        let colorizationNeedsReload: boolean = event.affectsConfiguration("workbench.colorTheme")
+			|| event.affectsConfiguration("editor.tokenColorCustomizations")
+		if (colorizationNeedsReload) {
+			await loadStyles()
+			colorAllOpen()
+		}
+	}
+    context.subscriptions.push(VS.workspace.onDidChangeConfiguration(onChangeConfiguration))
 	context.subscriptions.push(VS.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
 	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
 	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
+	// Don't wait for the initial color, it takes too long to inspect the themes and causes VSCode extension host to hang
+	async function activateLazily() {
+		await loadStyles()
+		await initParser
+		colorAllOpen()
+	}
+	activateLazily()
 }
 
 function range(x: Parser.SyntaxNode): VS.Range {
