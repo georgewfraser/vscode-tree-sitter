@@ -3,7 +3,7 @@ import * as Parser from 'web-tree-sitter'
 import * as path from 'path'
 import * as colors from './colors'
 
-type ColorFunction = (x: Parser.SyntaxNode, editor: vscode.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
+type ColorFunction = (x: Parser.SyntaxNode, editor: vscode.TextEditor) => [Parser.SyntaxNode, string][]
 
 function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	// Guess package names based on paths
@@ -43,9 +43,7 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 			return this.parent == null
 		}
 	}
-	var types: Parser.SyntaxNode[] = []
-	var fields: Parser.SyntaxNode[] = []
-	var functions: Parser.SyntaxNode[] = []
+	const colors: [Parser.SyntaxNode, string][] = []
 	function scanRoot(root: Parser.SyntaxNode) {
 		const scope = new Scope(null)
 		for (const decl of root.children) {
@@ -66,16 +64,16 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		// Add colors
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
 			// func f() { ... }
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier') {
 			// x: type
-			types.push(x)
+			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'selector_expression' && x.firstChild!.type == 'identifier' && scope.isPackage(x.firstChild!.text)) {
 			// pkg.member
 			return
 		} else if (x.type == 'field_identifier') {
 			// obj.member
-			fields.push(x)
+			colors.push([x, 'variable'])
 		}
 		// Add locals to scope
 		if (!scope.isRoot() && ['parameter_declaration', 'var_spec', 'const_spec'].includes(x.type)) {
@@ -105,21 +103,19 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	}
 	scanRoot(root)
 
-	return {types, fields, functions}
+	return colors
 }
 
 function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
-	var types: Parser.SyntaxNode[] = []
-	var fields: Parser.SyntaxNode[] = []
-	var functions: Parser.SyntaxNode[] = []
+	const colors: [Parser.SyntaxNode, string][] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function') {
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier' || x.type == 'predefined_type') {
-			types.push(x)
+			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'property_identifier') {
-			fields.push(x)
+			colors.push([x, 'variable'])
 		}
 		for (const child of x.children) {
 			scan(child)
@@ -127,13 +123,11 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	}
 	scan(x)
 
-	return {types, fields, functions}
+	return colors
 }
 
 function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
-	var types: Parser.SyntaxNode[] = []
-	var fields: Parser.SyntaxNode[] = []
-	var functions: Parser.SyntaxNode[] = []
+	const colors: [Parser.SyntaxNode, string][] = []
 	function looksLikeType(id: string) {
 		if (id.length == 0) return false
 		if (id[0] != id[0].toUpperCase()) return false
@@ -144,7 +138,7 @@ function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	}
 	function scanUse(x: Parser.SyntaxNode) {
 		if (x.type == 'identifier' && looksLikeType(x.text)) {
-			types.push(x)
+			colors.push([x, 'entity.name.type'])
 		}
 		for (const child of x.children) {
 			scanUse(child)
@@ -153,18 +147,18 @@ function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
-			fields.push(x)
+			colors.push([x, 'variable'])
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item') {
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'use_declaration') {
 			scanUse(x)
 			return
 		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
-			types.push(x)
+			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'field_identifier') {
-			fields.push(x)
+			colors.push([x, 'variable'])
 		}
 		for (const child of x.children) {
 			scan(child)
@@ -172,23 +166,21 @@ function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	}
 	scan(x)
 
-	return {types, fields, functions}
+	return colors
 }
 
 function colorCpp(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
-	var types: Parser.SyntaxNode[] = []
-	var fields: Parser.SyntaxNode[] = []
-	var functions: Parser.SyntaxNode[] = []
+	const colors: [Parser.SyntaxNode, string][] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declarator') {
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
-			functions.push(x)
+			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier') {
-			types.push(x)
+			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'field_identifier') {
-			fields.push(x)
+			colors.push([x, 'variable'])
 		}
 		for (const child of x.children) {
 			scan(child)
@@ -196,7 +188,7 @@ function colorCpp(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	}
 	scan(x)
 
-	return {types, fields, functions}
+	return colors
 }
 
 function isVisible(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
@@ -341,19 +333,28 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	}
+	const warnedScopes = new Set<string>()
 	function colorEditor(editor: vscode.TextEditor) {
 		const t = trees[editor.document.uri.toString()]
 		if (t == null) return
 		const language = languages[editor.document.languageId]
 		if (language == null) return
-		const {types, fields, functions} = language.color(t.rootNode, editor)
-		let dec: vscode.TextEditorDecorationType|undefined
-		dec = decoration('entity.name.type')
-		if (dec) editor.setDecorations(dec, types.map(range))
-		dec = decoration('variable')
-		if (dec) editor.setDecorations(dec, fields.map(range))
-		dec = decoration('entity.name.function')
-		if (dec) editor.setDecorations(dec, functions.map(range))
+		const colors = language.color(t.rootNode, editor)
+		const nodes = new Map<string, Parser.SyntaxNode[]>()
+		for (const [x, scope] of colors) {
+			if (!nodes.has(scope)) nodes.set(scope, [])
+			nodes.get(scope)!.push(x)
+		}
+		for (const scope of nodes.keys()) {
+			const dec = decoration(scope)
+			if (dec) {
+				const ranges = nodes.get(scope)!.map(range)
+				editor.setDecorations(dec, ranges)
+			} else if (!warnedScopes.has(scope)) {
+				console.warn(scope, 'was not found in the current theme')
+				warnedScopes.add(scope)
+			}
+		}
 	}
 	function colorAllOpen() {
 		vscode.window.visibleTextEditors.forEach(open)
