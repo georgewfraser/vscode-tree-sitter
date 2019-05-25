@@ -1,18 +1,18 @@
-import * as VS from 'vscode'
+import * as vscode from 'vscode'
 import * as Parser from 'web-tree-sitter'
-import * as Path from 'path'
+import * as path from 'path'
 import * as colors from './colors'
 
-type ColorFunction = (x: Parser.SyntaxNode, editor: VS.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
+type ColorFunction = (x: Parser.SyntaxNode, editor: vscode.TextEditor) => {types: Parser.SyntaxNode[], fields: Parser.SyntaxNode[], functions: Parser.SyntaxNode[]}
 
-function colorGo(root: Parser.SyntaxNode, editor: VS.TextEditor) {
+function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	// Guess package names based on paths
 	var packages: {[id: string]: boolean} = {}
 	function scanImport(x: Parser.SyntaxNode) {
 		if (x.type == 'import_spec') {
 			const str = x.firstChild!.text
-			const path = str.substring(1, str.length - 1)
-			const parts = path.split('/')
+			const full = str.substring(1, str.length - 1)
+			const parts = full.split('/')
 			const last = parts[parts.length - 1]
 			packages[last] = true
 		}
@@ -108,7 +108,7 @@ function colorGo(root: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return {types, fields, functions}
 }
 
-function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
@@ -130,7 +130,7 @@ function colorTypescript(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return {types, fields, functions}
 }
 
-function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function colorRust(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
@@ -175,7 +175,7 @@ function colorRust(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return {types, fields, functions}
 }
 
-function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function colorCpp(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	var types: Parser.SyntaxNode[] = []
 	var fields: Parser.SyntaxNode[] = []
 	var functions: Parser.SyntaxNode[] = []
@@ -199,14 +199,14 @@ function colorCpp(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 	return {types, fields, functions}
 }
 
-function isVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function isVisible(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	for (const visible of editor.visibleRanges) {
 		const overlap = x.startPosition.row <= visible.end.line+1 && visible.start.line-1 <= x.endPosition.row
 		if (overlap) return true
 	}
 	return false
 }
-function isAfterVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
+function isAfterVisible(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	for (const visible of editor.visibleRanges) {
 		if (x.startPosition.row <= visible.end.line+1) {
 			return false
@@ -216,11 +216,11 @@ function isAfterVisible(x: Parser.SyntaxNode, editor: VS.TextEditor) {
 }
 
 const defaultScopes = new Map<string, {dark:string, light:string}>()
-const activeScopes = new Map<string, VS.TextEditorDecorationType>()
+const activeScopes = new Map<string, vscode.TextEditorDecorationType>()
 
 // Initialize scopes
 function initScope(scope: string, dark: string, light: string) {
-	const style = VS.window.createTextEditorDecorationType({
+	const style = vscode.window.createTextEditorDecorationType({
 		dark: {color: dark},
 		light: {color: light}
 	})
@@ -246,7 +246,7 @@ async function loadStyles() {
 		} else {
 			console.warn('no style for', scope)
 			const {dark, light} = defaultScopes.get(scope)!
-			const style = VS.window.createTextEditorDecorationType({
+			const style = vscode.window.createTextEditorDecorationType({
 				dark: {color: dark},
 				light: {color: light}
 			})
@@ -254,9 +254,9 @@ async function loadStyles() {
 		}
 	}
 }
-function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): VS.TextEditorDecorationType {
-	let options: VS.DecorationRenderOptions = {}
-	options.rangeBehavior = VS.DecorationRangeBehavior.OpenOpen
+function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): vscode.TextEditorDecorationType {
+	let options: vscode.DecorationRenderOptions = {}
+	options.rangeBehavior = vscode.DecorationRangeBehavior.OpenOpen
 	if (themeStyle.foreground) {
 		options.color = themeStyle.foreground
 	}
@@ -281,19 +281,19 @@ function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): 
 			}
 		})
 	}
-	return VS.window.createTextEditorDecorationType(options)
+	return vscode.window.createTextEditorDecorationType(options)
 }
 
 // For some reason this crashes if we put it inside activate
 const initParser = Parser.init() // TODO this isn't a field, suppress package member coloring like Go
 
 // Called when the extension is first activated by user opening a file with the appropriate language
-export async function activate(context: VS.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	console.log("Activating tree-sitter...")
 	// Load parser from `parsers/module.wasm`
 	async function createParser(module: string, color: ColorFunction) {
-		const path = Path.join(context.extensionPath, 'parsers', module + '.wasm')
-		const wasm = Path.relative(process.cwd(), path)
+		const absolute = path.join(context.extensionPath, 'parsers', module + '.wasm')
+		const wasm = path.relative(process.cwd(), absolute)
 		const lang = await Parser.Language.load(wasm)
 		const parser = new Parser()
 		parser.setLanguage(lang)
@@ -308,20 +308,20 @@ export async function activate(context: VS.ExtensionContext) {
 	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
-	function open(editor: VS.TextEditor) {
+	function open(editor: vscode.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
 		const t = language.parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
 		trees[editor.document.uri.toString()] = t
 		colorUri(editor.document.uri)
 	}
-	function edit(edit: VS.TextDocumentChangeEvent) {
+	function edit(edit: vscode.TextDocumentChangeEvent) {
 		const language = languages[edit.document.languageId]
 		if (language == null) return
 		updateTree(language.parser, edit)
 		colorUri(edit.document.uri)
 	}
-	function updateTree(parser: Parser, edit: VS.TextDocumentChangeEvent) {
+	function updateTree(parser: Parser, edit: vscode.TextDocumentChangeEvent) {
 		if (edit.contentChanges.length == 0) return
 		const old = trees[edit.document.uri.toString()]
 		for (const e of edit.contentChanges) {
@@ -340,20 +340,20 @@ export async function activate(context: VS.ExtensionContext) {
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
 	}
-	function asPoint(pos: VS.Position): Parser.Point {
+	function asPoint(pos: vscode.Position): Parser.Point {
 		return {row: pos.line, column: pos.character}
 	}
-	function close(doc: VS.TextDocument) {
+	function close(doc: vscode.TextDocument) {
 		delete trees[doc.uri.toString()]
 	}
-	function colorUri(uri: VS.Uri) {
-		for (const editor of VS.window.visibleTextEditors) {
+	function colorUri(uri: vscode.Uri) {
+		for (const editor of vscode.window.visibleTextEditors) {
 			if (editor.document.uri == uri) {
 				colorEditor(editor)
 			}
 		}
 	}
-	function colorEditor(editor: VS.TextEditor) {
+	function colorEditor(editor: vscode.TextEditor) {
 		const t = trees[editor.document.uri.toString()]
 		if (t == null) return
 		const language = languages[editor.document.languageId]
@@ -364,10 +364,10 @@ export async function activate(context: VS.ExtensionContext) {
 		editor.setDecorations(activeScopes.get('entity.name.function')!, functions.map(range))
 	}
 	function colorAllOpen() {
-		VS.window.visibleTextEditors.forEach(open)
+		vscode.window.visibleTextEditors.forEach(open)
 	}
 	// Load active color theme
-	async function onChangeConfiguration(event: VS.ConfigurationChangeEvent) {
+	async function onChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
         let colorizationNeedsReload: boolean = event.affectsConfiguration("workbench.colorTheme")
 			|| event.affectsConfiguration("editor.tokenColorCustomizations")
 		if (colorizationNeedsReload) {
@@ -375,11 +375,11 @@ export async function activate(context: VS.ExtensionContext) {
 			colorAllOpen()
 		}
 	}
-    context.subscriptions.push(VS.workspace.onDidChangeConfiguration(onChangeConfiguration))
-	context.subscriptions.push(VS.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
-	context.subscriptions.push(VS.workspace.onDidChangeTextDocument(edit))
-	context.subscriptions.push(VS.workspace.onDidCloseTextDocument(close))
-	context.subscriptions.push(VS.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(onChangeConfiguration))
+	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
+	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(edit))
+	context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(close))
+	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
 	// Don't wait for the initial color, it takes too long to inspect the themes and causes VSCode extension host to hang
 	async function activateLazily() {
 		await loadStyles()
@@ -389,8 +389,8 @@ export async function activate(context: VS.ExtensionContext) {
 	activateLazily()
 }
 
-function range(x: Parser.SyntaxNode): VS.Range {
-	return new VS.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
+function range(x: Parser.SyntaxNode): vscode.Range {
+	return new vscode.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
 }
 
 // this method is called when your extension is deactivated
