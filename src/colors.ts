@@ -80,10 +80,14 @@ async function loadThemeFile(themePath: string) {
 function loadColors(textMateRules: TextMateRule[]): void {
     for (const rule of textMateRules) {
         if (typeof rule.scope == 'string') {
-            colors.set(rule.scope, rule.settings)
+            if (!colors.has(rule.scope)) {
+                colors.set(rule.scope, rule.settings)
+            }
         } else if (rule.scope instanceof Array) {
             for (const scope of rule.scope) {
-                colors.set(scope, rule.settings)
+                if (!colors.has(scope)) {
+                    colors.set(scope, rule.settings)
+                }
             }
         }
     }

@@ -3,17 +3,16 @@
     "scopeName": "source.ruby",
     "patterns": [
         {
-            "match": "\\b(__ENCODING__|__LINE__|__FILE__|alias|and|class|def|module|next|not|or|self|super|undef)\\b",
+            "match": "\\b(__ENCODING__|__LINE__|__FILE__|alias|and|class|def|module|not|or|self|super|undef)\\b",
             "name": "keyword.other.ruby"
         },
         {
-            "match": "\\b(BEGIN|END|begin|break|case|defined?|do|else|elsif|end|ensure|for|if|in|next|redo|rescue|retry|return|then|unless|until|when|while|yield)\\b",
-            "name": "keyword.other.ruby",
-            "comment": "TODO these are really control keywords, but I can't differentiate the two uses of end"
+            "match": "\\b(BEGIN|END|begin|break|case|defined?|do|else|elsif|ensure|for|if|in|next|redo|rescue|retry|return|then|unless|until|when|while|yield)\\b",
+            "name": "keyword.control.ruby"
         },
         {
             "match": "\\b(false|nil|true)\\b",
-            "name": "keyword.numeric.language.ruby"
+			"name": "constant.numeric.language.ruby"
         },
         {
             "match":

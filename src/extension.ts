@@ -128,7 +128,7 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 
 function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	const colors: [Parser.SyntaxNode, string][] = []
-
+	const control = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case']
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'method') {
@@ -139,8 +139,14 @@ function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 			colors.push([x, 'variable'])
 		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
 			colors.push([x.lastChild!, 'entity.name.function'])
-		}else if (x.type == 'method_call' && x.firstChild!.type == 'identifier') {
+		} else if (x.type == 'method_call' && x.firstChild!.type == 'identifier') {
 			colors.push([x.firstChild!, 'entity.name.function'])
+		} else if (x.type == 'end') {
+			if (control.includes(x.parent!.type)) {
+				colors.push([x, 'keyword.control'])
+			} else {
+				colors.push([x, 'keyword'])
+			}
 		}
 		for (const child of x.children) {
 			scan(child)
