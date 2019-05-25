@@ -215,44 +215,32 @@ function isAfterVisible(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	return true
 }
 
-const defaultScopes = new Map<string, {dark:string, light:string}>()
-const activeScopes = new Map<string, vscode.TextEditorDecorationType>()
+const decorationCache = new Map<string, vscode.TextEditorDecorationType>()
 
-// Initialize scopes
-function initScope(scope: string, dark: string, light: string) {
-	const style = vscode.window.createTextEditorDecorationType({
-		dark: {color: dark},
-		light: {color: light}
-	})
-	defaultScopes.set(scope, {dark, light})
-	activeScopes.set(scope, style)
+function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
+	// If we've already created a decoration for `scope`, use it
+	if (decorationCache.has(scope)) {
+		return decorationCache.get(scope)
+	}
+	// If `scope` is defined in the current theme, create a decoration for it
+	const textmate = colors.find(scope)
+	if (textmate) {
+		const decoration = createDecorationFromTextmate(textmate)
+		decorationCache.set(scope, decoration)
+		return decoration
+	}
+	// Otherwise, give up, there is no color available for this scope
+	return undefined
 }
-initScope('entity.name.type', "#4EC9B0", "#267f99")
-initScope('variable', "#9CDCFE", "#001080")
-initScope('entity.name.function', "#DCDCAA", "#795E26")
 
 // Load styles from the current active theme
 async function loadStyles() {
 	await colors.load()
 	// Clear old styles
-	for (let style of activeScopes.values()) {
+	for (let style of decorationCache.values()) {
 		style.dispose()
 	}
-	// Install new styles
-	for (let scope of activeScopes.keys()) {
-		const textmate = colors.find(scope)
-		if (textmate != null) {
-			activeScopes.set(scope, createDecorationFromTextmate(textmate))
-		} else {
-			console.warn('no style for', scope)
-			const {dark, light} = defaultScopes.get(scope)!
-			const style = vscode.window.createTextEditorDecorationType({
-				dark: {color: dark},
-				light: {color: light}
-			})
-			activeScopes.set(scope, style)
-		}
-	}
+	decorationCache.clear()
 }
 function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): vscode.TextEditorDecorationType {
 	let options: vscode.DecorationRenderOptions = {}
@@ -359,9 +347,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
 		const {types, fields, functions} = language.color(t.rootNode, editor)
-		editor.setDecorations(activeScopes.get('entity.name.type')!, types.map(range))
-		editor.setDecorations(activeScopes.get('variable')!, fields.map(range))
-		editor.setDecorations(activeScopes.get('entity.name.function')!, functions.map(range))
+		let dec: vscode.TextEditorDecorationType|undefined
+		dec = decoration('entity.name.type')
+		if (dec) editor.setDecorations(dec, types.map(range))
+		dec = decoration('variable')
+		if (dec) editor.setDecorations(dec, fields.map(range))
+		dec = decoration('entity.name.function')
+		if (dec) editor.setDecorations(dec, functions.map(range))
 	}
 	function colorAllOpen() {
 		vscode.window.visibleTextEditors.forEach(open)
