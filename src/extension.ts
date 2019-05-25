@@ -215,8 +215,8 @@ function isAfterVisible(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	return true
 }
 
+// Create decoration types from scopes lazily
 const decorationCache = new Map<string, vscode.TextEditorDecorationType>()
-
 function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
 	// If we've already created a decoration for `scope`, use it
 	if (decorationCache.has(scope)) {
@@ -231,16 +231,6 @@ function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
 	}
 	// Otherwise, give up, there is no color available for this scope
 	return undefined
-}
-
-// Load styles from the current active theme
-async function loadStyles() {
-	await colors.load()
-	// Clear old styles
-	for (let style of decorationCache.values()) {
-		style.dispose()
-	}
-	decorationCache.clear()
 }
 function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): vscode.TextEditorDecorationType {
 	let options: vscode.DecorationRenderOptions = {}
@@ -270,6 +260,16 @@ function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): 
 		})
 	}
 	return vscode.window.createTextEditorDecorationType(options)
+}
+
+// Load styles from the current active theme
+async function loadStyles() {
+	await colors.load()
+	// Clear old styles
+	for (let style of decorationCache.values()) {
+		style.dispose()
+	}
+	decorationCache.clear()
 }
 
 // For some reason this crashes if we put it inside activate
