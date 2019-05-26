@@ -11,5 +11,6 @@ set -e
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-ruby
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-rust
 ./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-typescript
+./node_modules/.bin/tree-sitter build-wasm ./node_modules/tree-sitter-javascript
 
 mv *.wasm parsers

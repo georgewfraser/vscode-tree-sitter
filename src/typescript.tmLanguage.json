@@ -3,7 +3,8 @@
 	"name": "TypeScript",
 	"scopeName": "source.ts",
 	"fileTypes": [
-		"ts"
+		"ts",
+		"js"
 	],
 	"patterns": [
 		{
@@ -65,7 +66,7 @@
 				{
 					"comment": "Terminator",
 					"match": ";",
-					"name": "keyword.other.semi.go"
+					"name": "keyword.other.semi.ts"
 				}
 			]
 		},

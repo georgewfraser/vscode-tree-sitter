@@ -116,6 +116,8 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'property_identifier') {
 			colors.push([x, 'variable'])
+		} else if (x.type == 'method_definition' && ['get', 'set'].includes(x.firstChild!.text)) {
+			colors.push([x.firstChild!, 'keyword'])
 		}
 		for (const child of x.children) {
 			scan(child)
@@ -318,10 +320,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Be sure to declare the language in package.json and include a minimalist grammar.
 	const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
 		'go': await createParser('tree-sitter-go', colorGo),
-		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
 		'cpp': await createParser('tree-sitter-cpp', colorCpp),
 		'rust': await createParser('tree-sitter-rust', colorRust),
 		'ruby': await createParser('tree-sitter-ruby', colorRuby),
+		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
+		'javascript': await createParser('tree-sitter-javascript', colorTypescript),
 	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
