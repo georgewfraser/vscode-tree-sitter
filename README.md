@@ -37,7 +37,7 @@ It's straightforward to add any [language with a tree-sitter grammar](https://tr
 
 1. Add a dependency on the npm package for that language: `npm install tree-sitter-yourlang`.
 3. Add the language and color function to the [dictionary in ./lib/extension.ts](https://github.com/georgewfraser/vscode-tree-sitter/blob/758d5227dee704570125ea86a0a5ff2e0371a1e9/src/extension.ts#L172).
-4. Add a **simplified** TextMate grammar to `./src/yourlang.tmLanguage.json`. The job of this textmate grammar is just to color keywords and literals.
+4. Add a **simplified** TextMate grammar to `./textmate/yourlang.tmLanguage.json`. The job of this textmate grammar is just to color keywords and literals.
 5. Add a reference to the grammar to the [contributes.grammars section of package.json](https://github.com/georgewfraser/vscode-tree-sitter/blob/fb4400b78481845c6a8497d079508d28aea25c19/package.json#L26). `yourlang` must be a [VSCode language identifier](https://code.visualstudio.com/docs/languages/identifiers).
 6. Add a reference to `onLanguage:yourlang` to the [activationEvents section of package.json](https://github.com/georgewfraser/vscode-tree-sitter/blob/fb4400b78481845c6a8497d079508d28aea25c19/package.json#L18). `yourlang` must be a [VSCode language identifier](https://code.visualstudio.com/docs/languages/identifiers).
 7. Add an example to `examples/yourlang`.

@@ -31,32 +31,32 @@
 			{
 				"language": "go",
 				"scopeName": "source.go",
-				"path": "./src/go.tmLanguage.json"
+				"path": "./textmate/go.tmLanguage.json"
 			},
 			{
 				"language": "cpp",
 				"scopeName": "source.cpp",
-				"path": "./src/cpp.tmLanguage.json"
+				"path": "./textmate/cpp.tmLanguage.json"
 			},
 			{
 				"language": "ruby",
 				"scopeName": "source.ruby",
-				"path": "./src/ruby.tmLanguage.json"
+				"path": "./textmate/ruby.tmLanguage.json"
 			},
 			{
 				"language": "rust",
 				"scopeName": "source.rust",
-				"path": "./src/rust.tmLanguage.json"
+				"path": "./textmate/rust.tmLanguage.json"
 			},
 			{
 				"language": "typescript",
 				"scopeName": "source.ts",
-				"path": "./src/typescript.tmLanguage.json"
+				"path": "./textmate/typescript.tmLanguage.json"
 			},
 			{
 				"language": "javascript",
 				"scopeName": "source.ts",
-				"path": "./src/typescript.tmLanguage.json"
+				"path": "./textmate/typescript.tmLanguage.json"
 			}
 		]
 	},
