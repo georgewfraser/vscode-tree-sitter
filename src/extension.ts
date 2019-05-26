@@ -106,11 +106,11 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		} else if (x.type == 'type_identifier') {
 			// x: type
 			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'field_identifier' && x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)) {
-			// pkg.member
 		} else if (x.type == 'field_identifier') {
+			// pkg.member
+			const isPackage = x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)
 			// obj.member
-			colors.push([x, 'variable'])
+			if (!isPackage) colors.push([x, 'variable'])
 		}
 	}
 	function updateScope(x: Parser.SyntaxNode, scope: Scope) {
@@ -351,7 +351,7 @@ function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): 
 async function loadStyles() {
 	await colors.load()
 	// Clear old styles
-	for (let style of decorationCache.values()) {
+	for (const style of decorationCache.values()) {
 		style.dispose()
 	}
 	decorationCache.clear()
