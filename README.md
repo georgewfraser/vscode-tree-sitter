@@ -18,7 +18,7 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ![Ruby](./screenshots/ruby.png)
 
-## Typescript
+## Javascript / Typescript
 
 ![Typescript](./screenshots/typescript.png)
 
