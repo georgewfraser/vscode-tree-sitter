@@ -128,14 +128,15 @@ function colorTypescript(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 
 function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 	const colors: [Parser.SyntaxNode, string][] = []
-	const control = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case']
+	const control = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block']
+	const variables = ['instance_variable', 'class_variable', 'global_variable']
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, editor)) return
 		if (x.type == 'method') {
 			colors.push([x.children[1]!, 'entity.name.function'])
 		} else if (x.type == 'singleton_method') {
 			colors.push([x.children[3], 'entity.name.function'])
-		} else if (x.type == 'instance_variable') {
+		} else if (variables.includes(x.type)) {
 			colors.push([x, 'variable'])
 		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
 			colors.push([x.lastChild!, 'entity.name.function'])
@@ -147,6 +148,10 @@ function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 			} else {
 				colors.push([x, 'keyword'])
 			}
+		} else if (x.type == 'constant') {
+			colors.push([x, 'entity.name.type'])
+		} else if (x.type == 'symbol') {
+			colors.push([x, 'constant.numeric'])
 		}
 		for (const child of x.children) {
 			scan(child)

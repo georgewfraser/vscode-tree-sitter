@@ -54,3 +54,51 @@ print "D: ", a.get, " ", b.get,"\n";
 x = :foo
 y = :'bar'
 z = :"doh"
+
+require 'uri'
+
+begin
+  URI.open('https://google.com')
+rescue URI::InvalidURIError => e
+  puts "Error: #{e}"
+end
+
+Client.new('test')
+
+Client::Subclient.method('test')
+
+hash = {
+  key1: 'value2',
+  key2: 'value2'
+}
+
+hash2 = {
+  :key1 => 'value1',
+  :key2 => 'value2'
+}
+
+progress_bar = ProgressBar.create(
+  total: 'test',
+  format: "\e[0;32m%c/%C |%b>%i| %e\e[0m"
+)
+
+# def and end are the same color
+def x_to_string
+  x.to_s
+end
+
+# do should use the same color as end in this block of code
+10.times do |i|
+  puts i
+end
+
+class Human
+  # A class variable. It is shared by all instances of this class.
+  @@species = 'Homo sapiens'
+end
+
+$global = 'this is a global'
+
+@var = "I'm an instance var"
+defined? @var #=> "instance-variable"
+defined @var

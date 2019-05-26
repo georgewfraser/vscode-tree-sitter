@@ -1,4 +1,5 @@
 {
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     "name": "Ruby",
     "scopeName": "source.ruby",
     "patterns": [
@@ -7,7 +8,11 @@
             "name": "keyword.other.ruby"
         },
         {
-            "match": "\\b(BEGIN|END|begin|break|case|defined?|do|else|elsif|ensure|for|if|in|next|redo|rescue|retry|return|then|unless|until|when|while|yield)\\b",
+            "match": "\\b(BEGIN|END|begin|break|case|do|else|elsif|ensure|for|if|in|next|redo|rescue|retry|return|then|unless|until|when|while|yield)\\b",
+            "name": "keyword.control.ruby"
+        },
+        {
+            "match": "\\bdefined[?]",
             "name": "keyword.control.ruby"
         },
         {
@@ -34,30 +39,6 @@
         {
             "match": "\\b0([oO]?[0-7](?>_?[0-7])*)?r?i?\\b",
             "name": "constant.numeric.octal.ruby"
-        },
-        {
-            "begin": ":'",
-            "end": "'",
-            "name": "constant.numeric.symbol.ruby",
-            "patterns": [
-                {
-                    "match": "\\\\['\\\\]",
-                    "name": "constant.character.escape.ruby"
-                }
-            ]
-        },
-        {
-            "begin": ":\"",
-            "end": "\"",
-            "name": "constant.numeric.symbol.ruby",
-            "patterns": [
-                {
-                    "include": "#interpolated_ruby"
-                },
-                {
-                    "include": "#escaped_char"
-                }
-            ]
         },
         {
             "comment": "Needs higher precidence than regular expressions.",
@@ -124,12 +105,6 @@
                     "include": "#regex_sub"
                 }
             ]
-        },
-        {
-            "comment": "symbols",
-            "match":
-                "(?<!:)(:)(?>[a-zA-Z_]\\w*(?>[?!]|=(?![>=]))?|===?|>[>=]?|<=>|<[<=]?|[%&`/\\|]|\\*\\*?|=?~|[-+]@?|\\[\\]=?|(@@?|\\$)[a-zA-Z_]\\w*)",
-            "name": "constant.numeric.symbol.ruby"
         },
         {
             "begin": "^=begin",
