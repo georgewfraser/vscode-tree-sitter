@@ -449,6 +449,12 @@ export async function activate(context: vscode.ExtensionContext) {
 				warnedScopes.add(scope)
 			}
 		}
+		for (const scope of decorationCache.keys()) {
+			if (!nodes.has(scope)) {
+				const dec = decorationCache.get(scope)!
+				editor.setDecorations(dec, [])
+			}
+		}
 	}
 	function colorAllOpen() {
 		vscode.window.visibleTextEditors.forEach(open)
