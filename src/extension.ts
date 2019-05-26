@@ -93,14 +93,24 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 						}
 					}
 				}
-				scanChildren(x, new Scope(scope))
+				scanChildren(x, scope)
+				break
+			case 'short_var_declaration': 
+				if (!scope.isRoot()) {
+					for (const id of x.firstChild!.children) {
+						if (id.type == 'identifier') {
+							scope.declareLocal(id.text)
+						}
+					}
+				}
+				scanChildren(x, scope)
 				break
 			case 'inc_statement':
 			case 'dec_statement':
 				if (!scope.isRoot()) {
 					scope.modifyLocal(x.firstChild!.text)
 				}
-				scanChildren(x, new Scope(scope))
+				scanChildren(x, scope)
 				break
 			case 'assignment_statement':
 				if (!scope.isRoot()) {
@@ -110,7 +120,7 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 						}
 					}
 				}
-				scanChildren(x, new Scope(scope))
+				scanChildren(x, scope)
 				break
 			case 'identifier':
 				if (!scope.isRoot()) {
