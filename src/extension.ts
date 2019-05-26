@@ -142,6 +142,9 @@ function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 			colors.push([x, 'variable'])
 		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
 			colors.push([x.lastChild!, 'entity.name.function'])
+		// Method parameters
+		} else if (x.type == 'identifier' && x.parent!.type == 'method_parameters') {
+			colors.push([x, 'variable.parameter'])
 		} else if (x.type == 'method_call' && x.firstChild!.type == 'identifier') {
 			colors.push([x.firstChild!, 'entity.name.function'])
 		} else if (x.type == 'end') {
