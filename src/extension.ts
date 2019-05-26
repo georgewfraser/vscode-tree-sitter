@@ -21,18 +21,51 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		}
 	}
 	// Keep track of local vars that shadow packages
+	const allScopes: Scope[] = []
 	class Scope {
-		locals: {[id: string]: boolean} = {}
-		parent: Scope|null
+		private locals = new Map<string, {modified: boolean, references: Parser.SyntaxNode[]}>()
+		private parent: Scope|null
 	
 		constructor(parent: Scope|null) {
 			this.parent = parent
+			allScopes.push(this)
+		}
+
+		declareLocal(id: string) {
+			this.locals.set(id, {modified: false, references: []})
+		}
+
+		modifyLocal(id: string) {
+			if (this.locals.has(id)) this.locals.get(id)!.modified = true
+			else if (this.parent != null) this.parent.modifyLocal(id)
+		}
+
+		referenceLocal(x: Parser.SyntaxNode) {
+			const id = x.text
+			if (this.locals.has(id)) this.locals.get(id)!.references.push(x)
+			else if (this.parent != null) this.parent.referenceLocal(x)
 		}
 	
 		isLocal(id: string): boolean {
-			if (this.locals[id]) return true
+			if (this.locals.has(id)) return true
 			if (this.parent != null) return this.parent.isLocal(id)
 			return false
+		}
+
+		isModified(id: string): boolean {
+			if (this.locals.has(id)) return this.locals.get(id)!.modified
+			if (this.parent != null) return this.parent.isModified(id)
+			return false
+		}
+
+		modifiedLocals(): Parser.SyntaxNode[] {
+			const all = []
+			for (const {modified, references} of this.locals.values()) {
+				if (modified) {
+					all.push(...references)
+				}
+			}
+			return all
 		}
 
 		isPackage(id: string): boolean {
@@ -59,42 +92,59 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		}
 	}
 	function scan(x: Parser.SyntaxNode, scope: Scope) {
-		// Stop coloring function bodies after the visible range
-		if (isAfterVisible(x, editor)) return
+		scope = updateScope(x, scope)
+		if (isVisible(x, editor)) {
+			addColors(x, scope)
+		} 
+		scanChildren(x, scope)
+	}
+	function addColors(x: Parser.SyntaxNode, scope: Scope) {
 		// Add colors
-		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declaration') {
+		if (x.type == 'identifier' && x.parent!.type == 'function_declaration') {
 			// func f() { ... }
 			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier') {
 			// x: type
 			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'selector_expression' && x.firstChild!.type == 'identifier' && scope.isPackage(x.firstChild!.text)) {
+		} else if (x.type == 'field_identifier' && x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)) {
 			// pkg.member
-			return
 		} else if (x.type == 'field_identifier') {
 			// obj.member
 			colors.push([x, 'variable'])
 		}
+	}
+	function updateScope(x: Parser.SyntaxNode, scope: Scope) {
 		// Add locals to scope
 		if (!scope.isRoot() && ['parameter_declaration', 'var_spec', 'const_spec'].includes(x.type)) {
 			for (const id of x.children) {
 				if (id.type == 'identifier') {
-					scope.locals[id.text] = true
+					scope.declareLocal(id.text)
 				}
 			}
 		} else if (!scope.isRoot() && ['short_var_declaration', 'range_clause'].includes(x.type)) {
 			for (const id of x.firstChild!.children) {
 				if (id.type == 'identifier') {
-					scope.locals[id.text] = true
+					scope.declareLocal(id.text)
 				}
 			}
 		}
+		// Keep track of whether locals are modified or not
+		if (!scope.isRoot() && ['inc_statement', 'dec_statement'].includes(x.type)) {
+			scope.modifyLocal(x.firstChild!.text)
+		} else if (!scope.isRoot() && x.type == 'assignment_statement') {
+			for (const id of x.firstChild!.children) {
+				if (id.type == 'identifier') {
+					scope.modifyLocal(id.text)
+				}
+			}
+		} else if (!scope.isRoot() && x.type == 'identifier') {
+			scope.referenceLocal(x)
+		}
 		// Define new scope
 		if (['function_declaration', 'method_declaration', 'func_literal', 'block'].includes(x.type)) {
-			scope = new Scope(scope)
+			return new Scope(scope)
 		}
-		// Recurse
-		scanChildren(x, scope)
+		return scope
 	}
 	function scanChildren(x: Parser.SyntaxNode, scope: Scope) {
 		for (const child of x.children) {
@@ -102,6 +152,11 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		}
 	}
 	scanRoot(root)
+	for (const scope of allScopes) {
+		for (const local of scope.modifiedLocals()) {
+			colors.push([local, 'markup.underline'])
+		}
+	}
 
 	return colors
 }
