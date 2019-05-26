@@ -153,7 +153,7 @@ function colorRuby(x: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		} else if (x.type == 'constant') {
 			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'symbol') {
-			colors.push([x, 'constant.numeric'])
+			colors.push([x, 'constant.language'])
 		}
 		for (const child of x.children) {
 			scan(child)
