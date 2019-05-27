@@ -7,7 +7,7 @@ type TestCase = [string, ...Assert[]]
 const goTests: TestCase[] = [
     [
         `package p; func f() int { }`, 
-        ['f', 'entity.name.function'], ['int', 'entity.name.type']
+        ['f', 'entity.name.function'], ['int', 'entity.name.foo']
     ],
     [
         `package p; type Foo struct { x int }`, 

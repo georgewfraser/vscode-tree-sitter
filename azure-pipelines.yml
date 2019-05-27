@@ -16,6 +16,11 @@ steps:
   displayName: 'Install Node.js'
 - script: 'npm install'
   displayName: 'Install NPM deps'
+- script: 'npm run compile'
+  displayName: 'Compile Typescript'
+- script: 'node out/test.js'
+  displayName: 'Run tests'
+  failOnStderr: true
 - script: './scripts/gen-parsers.sh'
   displayName: 'Build parsers to .wasm files'
 - script: 'zip -r parsers.zip parsers'
