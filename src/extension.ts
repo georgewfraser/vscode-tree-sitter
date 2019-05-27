@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 import * as Parser from 'web-tree-sitter'
 import * as path from 'path'
-import * as colors from './colors'
+import * as colors from './scopes'
 
 type ColorFunction = (x: Parser.SyntaxNode, editor: vscode.TextEditor) => [Parser.SyntaxNode, string][]
 
