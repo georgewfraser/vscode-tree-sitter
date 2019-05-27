@@ -225,9 +225,6 @@ export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'symbol') {
 			colors.push([x, 'constant.language'])
-		// Method parameters
-		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'method_parameters') {
-			colors.push([x, 'variable.parameter'])
 		}
 		for (const child of x.children) {
 			scan(child)
