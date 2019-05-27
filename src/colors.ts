@@ -38,24 +38,24 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 
 		modifyLocal(id: string) {
 			if (this.locals.has(id)) this.locals.get(id)!.modified = true
-			else if (this.parent != null) this.parent.modifyLocal(id)
+			else if (this.parent) this.parent.modifyLocal(id)
 		}
 
 		referenceLocal(x: Parser.SyntaxNode) {
 			const id = x.text
 			if (this.locals.has(id)) this.locals.get(id)!.references.push(x)
-			else if (this.parent != null) this.parent.referenceLocal(x)
+			else if (this.parent) this.parent.referenceLocal(x)
 		}
 	
 		isLocal(id: string): boolean {
 			if (this.locals.has(id)) return true
-			if (this.parent != null) return this.parent.isLocal(id)
+			if (this.parent) return this.parent.isLocal(id)
 			return false
 		}
 
 		isModified(id: string): boolean {
 			if (this.locals.has(id)) return this.locals.get(id)!.modified
-			if (this.parent != null) return this.parent.isModified(id)
+			if (this.parent) return this.parent.isModified(id)
 			return false
 		}
 
@@ -181,7 +181,7 @@ export function colorTypescript(x: Parser.SyntaxNode, visibleRanges: {start: num
 	const colors: [Parser.SyntaxNode, string][] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function') {
+		if (x.type == 'identifier' && x.parent && x.parent.type == 'function') {
 			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier' || x.type == 'predefined_type') {
 			colors.push([x, 'entity.name.type'])
@@ -255,11 +255,11 @@ export function colorRust(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 	}
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item' && x.parent.parent != null && x.parent.parent.type == 'declaration_list') {
+		if (x.type == 'identifier' && x.parent && x.parent.type == 'function_item' && x.parent.parent && x.parent.parent.type == 'declaration_list') {
 			colors.push([x, 'variable'])
-		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_item') {
+		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'function_item') {
 			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
+		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'scoped_identifier' && x.parent.parent && x.parent.parent.type == 'function_declarator') {
 			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'use_declaration') {
 			scanUse(x)
@@ -282,9 +282,9 @@ export function colorCpp(x: Parser.SyntaxNode, visibleRanges: {start: number, en
 	const colors: [Parser.SyntaxNode, string][] = []
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent != null && x.parent.type == 'function_declarator') {
+		if (x.type == 'identifier' && x.parent && x.parent.type == 'function_declarator') {
 			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'identifier' && x.parent != null && x.parent.type == 'scoped_identifier' && x.parent.parent != null && x.parent.parent.type == 'function_declarator') {
+		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'scoped_identifier' && x.parent.parent && x.parent.parent.type == 'function_declarator') {
 			colors.push([x, 'entity.name.function'])
 		} else if (x.type == 'type_identifier') {
 			colors.push([x, 'entity.name.type'])
