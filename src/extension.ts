@@ -32,7 +32,11 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 		}
 
 		declareLocal(id: string) {
-			this.locals.set(id, {modified: false, references: []})
+			if (this.locals.has(id)) {
+				this.locals.get(id)!.modified = true
+			} else {
+				this.locals.set(id, {modified: false, references: []})
+			}
 		}
 
 		modifyLocal(id: string) {
@@ -355,7 +359,7 @@ function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): 
 }
 
 // Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: {module: string, color: ColorFunction}} = {
+const languages: {[id: string]: {module: string, color: ColorFunction, parser?: Parser}} = {
 	'go': {module: 'tree-sitter-go', color: colorGo},
 	'cpp': {module: 'tree-sitter-cpp', color: colorCpp},
 	'rust': {module: 'tree-sitter-rust', color: colorRust},
@@ -363,8 +367,6 @@ const languages: {[id: string]: {module: string, color: ColorFunction}} = {
 	'typescript': {module: 'tree-sitter-typescript', color: colorTypescript},
 	'javascript': {module: 'tree-sitter-javascript', color: colorTypescript},
 }
-// We'll use this to store loaded parsers
-const parserCache = new Map<string, Parser>()
 
 // Load styles from the current active theme
 async function loadStyles() {
@@ -382,33 +384,28 @@ const initParser = Parser.init() // TODO this isn't a field, suppress package me
 // Called when the extension is first activated by user opening a file with the appropriate language
 export async function activate(context: vscode.ExtensionContext) {
 	console.log("Activating tree-sitter...")
-	// Load parser from `parsers/module.wasm`
-	async function parser(module: string) {
-		if (!parserCache.has(module)) {
-			const absolute = path.join(context.extensionPath, 'parsers', module + '.wasm')
-			const wasm = path.relative(process.cwd(), absolute)
-			const lang = await Parser.Language.load(wasm)
-			const parser = new Parser()
-			parser.setLanguage(lang)
-			parserCache.set(module, parser)
-		}
-		return parserCache.get(module)!
-	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
 	async function open(editor: vscode.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
-		const p = await parser(language.module)
-		const t = p.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
+		if (language.parser == null) {
+			const absolute = path.join(context.extensionPath, 'parsers', language.module + '.wasm')
+			const wasm = path.relative(process.cwd(), absolute)
+			const lang = await Parser.Language.load(wasm)
+			const parser = new Parser()
+			parser.setLanguage(lang)
+			language.parser = parser
+		}
+		const t = language.parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
 		trees[editor.document.uri.toString()] = t
 		colorUri(editor.document.uri)
 	}
-	async function edit(edit: vscode.TextDocumentChangeEvent) {
+	// NOTE: if you make this an async function, it seems to cause edit anomalies
+	function edit(edit: vscode.TextDocumentChangeEvent) {
 		const language = languages[edit.document.languageId]
-		if (language == null) return
-		const p = await parser(language.module)
-		updateTree(p, edit)
+		if (language == null || language.parser == null) return
+		updateTree(language.parser, edit)
 		colorUri(edit.document.uri)
 	}
 	function updateTree(parser: Parser, edit: vscode.TextDocumentChangeEvent) {

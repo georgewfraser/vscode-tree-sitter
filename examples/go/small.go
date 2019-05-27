@@ -37,3 +37,9 @@ func f(x int) {
 	}
 	container.y++
 }
+
+func shadow() {
+	a, x := 1, 2
+	b, x := 2, 3
+	println(a, b, x)
+}
