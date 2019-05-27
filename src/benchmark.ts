@@ -245,17 +245,12 @@ function colorGoSwitch(root: Parser.SyntaxNode) {
 		}
 	}
 	const colors: [Parser.SyntaxNode, string][] = []
-	function scanRoot(root: Parser.SyntaxNode) {
-		const scope = new Scope(null)
-		for (const decl of root.children) {
-			scan(decl, scope)
-		}
-	}
 	function scan(x: Parser.SyntaxNode, scope: Scope) {
 		const visible = true
 		switch (x.type) {
 			case 'import_declaration':
 				scanImport(x)
+				break
 			case 'parameter_declaration':
 			case 'var_spec':
 			case 'const_spec':
@@ -266,12 +261,24 @@ function colorGoSwitch(root: Parser.SyntaxNode) {
 						}
 					}
 				}
+				scanChildren(x, scope)
+				break
+			case 'short_var_declaration': 
+				if (!scope.isRoot()) {
+					for (const id of x.firstChild!.children) {
+						if (id.type == 'identifier') {
+							scope.declareLocal(id.text)
+						}
+					}
+				}
+				scanChildren(x, scope)
 				break
 			case 'inc_statement':
 			case 'dec_statement':
 				if (!scope.isRoot()) {
 					scope.modifyLocal(x.firstChild!.text)
 				}
+				scanChildren(x, scope)
 				break
 			case 'assignment_statement':
 				if (!scope.isRoot()) {
@@ -281,22 +288,24 @@ function colorGoSwitch(root: Parser.SyntaxNode) {
 						}
 					}
 				}
+				scanChildren(x, scope)
 				break
 			case 'identifier':
 				if (!scope.isRoot()) {
 					scope.referenceLocal(x)
+				}
+				if (visible && x.parent!.type == 'function_declaration') {
+					// func f() { ... }
+					colors.push([x, 'entity.name.function'])
 				}
 				break
 			case 'function_declaration':
 			case 'method_declaration':
 			case 'func_literal':
 			case 'block':
-				scope = new Scope(scope)
-				break
-			case 'identifier':
-				if (visible && x.parent!.type == 'function_declaration') {
-					// func f() { ... }
-					colors.push([x, 'entity.name.function'])
+				// Skip top-level declarations that aren't visible
+				if (visible || !scope.isRoot()) {
+					scanChildren(x, new Scope(scope))
 				}
 				break
 			case 'type_identifier':
@@ -313,15 +322,19 @@ function colorGoSwitch(root: Parser.SyntaxNode) {
 					if (!isPackage) colors.push([x, 'variable'])
 				}
 				break
+			default:
+				// Skip top-level declarations that aren't visible
+				if (visible || !scope.isRoot()) {
+					scanChildren(x, scope)
+				}
 		}
-		scanChildren(x, scope)
 	}
 	function scanChildren(x: Parser.SyntaxNode, scope: Scope) {
 		for (const child of x.children) {
 			scan(child, scope)
 		}
 	}
-	scanRoot(root)
+	scan(root, new Scope(null))
 	for (const scope of allScopes) {
 		for (const local of scope.modifiedLocals()) {
 			colors.push([local, 'markup.underline'])
