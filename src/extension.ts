@@ -126,6 +126,10 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 				if (!scope.isRoot()) {
 					scope.referenceLocal(x)
 				}
+				if (visible && x.parent!.type == 'function_declaration') {
+					// func f() { ... }
+					colors.push([x, 'entity.name.function'])
+				}
 				break
 			case 'function_declaration':
 			case 'method_declaration':
@@ -134,12 +138,6 @@ function colorGo(root: Parser.SyntaxNode, editor: vscode.TextEditor) {
 				// Skip top-level declarations that aren't visible
 				if (visible || !scope.isRoot()) {
 					scanChildren(x, new Scope(scope))
-				}
-				break
-			case 'identifier':
-				if (visible && x.parent!.type == 'function_declaration') {
-					// func f() { ... }
-					colors.push([x, 'entity.name.function'])
 				}
 				break
 			case 'type_identifier':
