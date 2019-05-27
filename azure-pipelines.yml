@@ -21,17 +21,3 @@ steps:
 - script: 'node out/test.js'
   displayName: 'Run tests'
   failOnStderr: true
-- script: './scripts/gen-parsers.sh'
-  displayName: 'Build parsers to .wasm files'
-- script: 'zip -r parsers.zip parsers'
-  displayName: 'Zip parsers.zip'
-- task: GithubRelease@0 
-  displayName: 'Create GitHub Release'      
-  inputs:
-    gitHubConnection: github-write
-    repositoryName: georgewfraser/vscode-tree-sitter
-    tagSource: manual
-    tag: latest
-    action: edit
-    assetUploadMode: replace
-    assets: parsers.zip
