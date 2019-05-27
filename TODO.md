@@ -6,6 +6,3 @@
 - Folding-range provider https://code.visualstudio.com/api/references/vscode-api#FoldingRangeProvider
 - Extend-selection provider https://code.visualstudio.com/api/references/vscode-api#SelectionRangeProvider
 - Document highlight provider https://code.visualstudio.com/api/references/vscode-api#DocumentHighlightProvider
-
-## Performance
-- Load language wasm files lazily

@@ -356,6 +356,18 @@ function createDecorationFromTextmate(themeStyle: colors.TextMateRuleSettings): 
 	return vscode.window.createTextEditorDecorationType(options)
 }
 
+// Be sure to declare the language in package.json and include a minimalist grammar.
+const languages: {[id: string]: {module: string, color: ColorFunction}} = {
+	'go': {module: 'tree-sitter-go', color: colorGo},
+	'cpp': {module: 'tree-sitter-cpp', color: colorCpp},
+	'rust': {module: 'tree-sitter-rust', color: colorRust},
+	'ruby': {module: 'tree-sitter-ruby', color: colorRuby},
+	'typescript': {module: 'tree-sitter-typescript', color: colorTypescript},
+	'javascript': {module: 'tree-sitter-javascript', color: colorTypescript},
+}
+// We'll use this to store loaded parsers
+const parserCache = new Map<string, Parser>()
+
 // Load styles from the current active theme
 async function loadStyles() {
 	await colors.load()
@@ -373,36 +385,32 @@ const initParser = Parser.init() // TODO this isn't a field, suppress package me
 export async function activate(context: vscode.ExtensionContext) {
 	console.log("Activating tree-sitter...")
 	// Load parser from `parsers/module.wasm`
-	async function createParser(module: string, color: ColorFunction) {
-		const absolute = path.join(context.extensionPath, 'parsers', module + '.wasm')
-		const wasm = path.relative(process.cwd(), absolute)
-		const lang = await Parser.Language.load(wasm)
-		const parser = new Parser()
-		parser.setLanguage(lang)
-		return {parser, color}
-	}
-	// Be sure to declare the language in package.json and include a minimalist grammar.
-	const languages: {[id: string]: {parser: Parser, color: ColorFunction}} = {
-		'go': await createParser('tree-sitter-go', colorGo),
-		'cpp': await createParser('tree-sitter-cpp', colorCpp),
-		'rust': await createParser('tree-sitter-rust', colorRust),
-		'ruby': await createParser('tree-sitter-ruby', colorRuby),
-		'typescript': await createParser('tree-sitter-typescript', colorTypescript),
-		'javascript': await createParser('tree-sitter-javascript', colorTypescript),
+	async function parser(module: string) {
+		if (!parserCache.has(module)) {
+			const absolute = path.join(context.extensionPath, 'parsers', module + '.wasm')
+			const wasm = path.relative(process.cwd(), absolute)
+			const lang = await Parser.Language.load(wasm)
+			const parser = new Parser()
+			parser.setLanguage(lang)
+			parserCache.set(module, parser)
+		}
+		return parserCache.get(module)!
 	}
 	// Parse of all visible documents
 	const trees: {[uri: string]: Parser.Tree} = {}
-	function open(editor: vscode.TextEditor) {
+	async function open(editor: vscode.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
-		const t = language.parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
+		const p = await parser(language.module)
+		const t = p.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
 		trees[editor.document.uri.toString()] = t
 		colorUri(editor.document.uri)
 	}
-	function edit(edit: vscode.TextDocumentChangeEvent) {
+	async function edit(edit: vscode.TextDocumentChangeEvent) {
 		const language = languages[edit.document.languageId]
 		if (language == null) return
-		updateTree(language.parser, edit)
+		const p = await parser(language.module)
+		updateTree(p, edit)
 		colorUri(edit.document.uri)
 	}
 	function updateTree(parser: Parser, edit: vscode.TextDocumentChangeEvent) {
@@ -466,8 +474,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		}
 	}
-	function colorAllOpen() {
-		vscode.window.visibleTextEditors.forEach(open)
+	async function colorAllOpen() {
+		for (const editor of vscode.window.visibleTextEditors) {
+			await open(editor)
+		}
 	}
 	// Load active color theme
 	async function onChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
@@ -479,7 +489,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	}
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(onChangeConfiguration))
-	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => editors.forEach(open)))
+	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(colorAllOpen))
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(close))
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
