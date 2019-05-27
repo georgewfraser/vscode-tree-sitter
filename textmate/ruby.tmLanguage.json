@@ -1,5 +1,5 @@
 {
-	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     "name": "Ruby",
     "scopeName": "source.ruby",
     "patterns": [
@@ -16,8 +16,13 @@
             "name": "keyword.control.ruby"
         },
         {
+            "comment": "TODO: Can these be recognized better by tree-sitter? See https://github.com/georgewfraser/vscode-tree-sitter/pull/16",
+            "match": "\\b(initialize|new|loop|include|extend|prepend|raise|fail|attr_reader|attr_writer|attr_accessor|attr|catch|throw|private|private_class_method|module_function|public|public_class_method|protected|refine|using)\\b(?![?!])",
+            "name": "keyword.other.special-method.ruby"
+        },
+        {
             "match": "\\b(false|nil|true)\\b",
-			"name": "constant.numeric.language.ruby"
+            "name": "constant.numeric.language.ruby"
         },
         {
             "match":

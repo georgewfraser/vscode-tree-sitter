@@ -211,12 +211,12 @@ export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 			colors.push([x.children[3], 'entity.name.function'])
 		} else if (variables.includes(x.type)) {
 			colors.push([x, 'variable'])
-		} else if (x.type == 'call' && x.lastChild!.type == 'identifier') {
-			colors.push([x.lastChild!, 'entity.name.function'])
-		} else if (x.type == 'method_call' && x.firstChild!.type == 'identifier') {
-			colors.push([x.firstChild!, 'entity.name.function'])
+		} else if (x.type == 'call' && x.lastChild && x.lastChild.type == 'identifier') {
+			colors.push([x.lastChild, 'entity.name.function'])
+		} else if (x.type == 'method_call' && x.firstChild && x.firstChild.type == 'identifier') {
+			colors.push([x.firstChild, 'entity.name.function'])
 		} else if (x.type == 'end') {
-			if (control.includes(x.parent!.type)) {
+			if (x.parent && control.includes(x.parent.type)) {
 				colors.push([x, 'keyword.control'])
 			} else {
 				colors.push([x, 'keyword'])
@@ -224,7 +224,10 @@ export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 		} else if (x.type == 'constant') {
 			colors.push([x, 'entity.name.type'])
 		} else if (x.type == 'symbol') {
-			colors.push([x, 'constant.numeric'])
+			colors.push([x, 'constant.language'])
+		// Method parameters
+		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'method_parameters') {
+			colors.push([x, 'variable.parameter'])
 		}
 		for (const child of x.children) {
 			scan(child)
