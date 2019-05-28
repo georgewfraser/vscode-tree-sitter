@@ -2,21 +2,22 @@ import * as vscode from 'vscode'
 import * as Parser from 'web-tree-sitter'
 import * as path from 'path'
 import * as scopes from './scopes'
-import * as colors from './colors'
+import * as Colorizer from './colors'
+
 
 // Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: {module: string, color: colors.ColorFunction, parser?: Parser}} = {
-	'go': {module: 'tree-sitter-go', color: colors.colorGo},
-	'cpp': {module: 'tree-sitter-cpp', color: colors.colorCpp},
-	'rust': {module: 'tree-sitter-rust', color: colors.colorRust},
-	'ruby': {module: 'tree-sitter-ruby', color: colors.colorRuby},
-	'typescript': {module: 'tree-sitter-typescript', color: colors.colorTypescript},
-	'javascript': {module: 'tree-sitter-javascript', color: colors.colorTypescript},
+const languages: { [id: string]: { module: string, colorizer: Colorizer.Colorizer, parser?: Parser } } = {
+	'go': { module: 'tree-sitter-go', colorizer: new Colorizer.ColorizerGo },
+	'cpp': { module: 'tree-sitter-cpp', colorizer: new Colorizer.ColorizerCpp },
+	'rust': { module: 'tree-sitter-rust', colorizer: new Colorizer.ColorizerRust },
+	'ruby': { module: 'tree-sitter-ruby', colorizer: new Colorizer.ColorizerRuby },
+	'typescript': { module: 'tree-sitter-typescript', colorizer: new Colorizer.ColorizerTS },
+	'javascript': { module: 'tree-sitter-javascript', colorizer: new Colorizer.ColorizerTS },
 }
 
 // Create decoration types from scopes lazily
 const decorationCache = new Map<string, vscode.TextEditorDecorationType>()
-function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
+function decoration(scope: string): vscode.TextEditorDecorationType | undefined {
 	// If we've already created a decoration for `scope`, use it
 	if (decorationCache.has(scope)) {
 		return decorationCache.get(scope)
@@ -78,7 +79,7 @@ const initParser = Parser.init() // TODO this isn't a field, suppress package me
 export async function activate(context: vscode.ExtensionContext) {
 	console.log("Activating tree-sitter...")
 	// Parse of all visible documents
-	const trees: {[uri: string]: Parser.Tree} = {}
+	const trees: { [uri: string]: Parser.Tree } = {}
 	async function open(editor: vscode.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
@@ -114,14 +115,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			const startPosition = asPoint(startPos)
 			const oldEndPosition = asPoint(oldEndPos)
 			const newEndPosition = asPoint(newEndPos)
-			const delta = {startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition}
+			const delta = { startIndex, oldEndIndex, newEndIndex, startPosition, oldEndPosition, newEndPosition }
 			old.edit(delta)
 		}
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
 		trees[edit.document.uri.toString()] = t
 	}
 	function asPoint(pos: vscode.Position): Parser.Point {
-		return {row: pos.line, column: pos.character}
+		return { row: pos.line, column: pos.character }
 	}
 	function close(doc: vscode.TextDocument) {
 		delete trees[doc.uri.toString()]
@@ -139,7 +140,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (t == null) return
 		const language = languages[editor.document.languageId]
 		if (language == null) return
-		const scopes = language.color(t.rootNode, visibleLines(editor))
+		const colorizer = language.colorizer
+		if (colorizer == null) return
+		const scopes = colorizer.color(t.rootNode, visibleLines(editor))
 		const nodes = new Map<string, Parser.SyntaxNode[]>()
 		for (const [x, scope] of scopes) {
 			if (!nodes.has(scope)) nodes.set(scope, [])
@@ -169,14 +172,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 	// Load active color theme
 	async function onChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
-        let colorizationNeedsReload: boolean = event.affectsConfiguration("workbench.colorTheme")
+		let colorizationNeedsReload: boolean = event.affectsConfiguration("workbench.colorTheme")
 			|| event.affectsConfiguration("editor.tokenColorCustomizations")
 		if (colorizationNeedsReload) {
 			await loadStyles()
 			colorAllOpen()
 		}
 	}
-    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(onChangeConfiguration))
+	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(onChangeConfiguration))
 	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(colorAllOpen))
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(close))
@@ -194,7 +197,7 @@ function visibleLines(editor: vscode.TextEditor) {
 	return editor.visibleRanges.map(range => {
 		const start = range.start.line
 		const end = range.end.line
-		return {start, end}
+		return { start, end }
 	})
 }
 
@@ -203,4 +206,4 @@ function range(x: Parser.SyntaxNode): vscode.Range {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
