@@ -30,6 +30,17 @@
 				"${workspaceFolder}/out/test/**/*.js"
 			],
 			"preLaunchTask": "npm: compile"
+		},
+		{
+			"name": "Debug tests",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run-script", "debug"
+			],
+			"port": 9229
 		}
 	]
 }

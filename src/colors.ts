@@ -201,30 +201,58 @@ export function colorTypescript(x: Parser.SyntaxNode, visibleRanges: {start: num
 
 export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
 	const colors: [Parser.SyntaxNode, string][] = []
-	const control = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block']
-	const variables = ['instance_variable', 'class_variable', 'global_variable']
+	const controlKeywords = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block']
+	const classKeywords = ['include', 'prepend', 'extend', 'private', 'protected', 'public', 'attr_reader', 'attr_writer', 'attr_accessor', 'attr', 'private_class_method', 'public_class_method']
+	const moduleKeywords = ['module_function', ...classKeywords]
+	function isChildOf(x: Parser.SyntaxNode, parent: string) {
+		// class Foo; bar; end
+		if (x.parent && x.parent.type == parent) {
+			return true
+		}
+		// class Foo; bar :thing; end
+		if (x.parent && x.parent.type == 'method_call' && x.parent.parent && x.parent.parent.type == parent) {
+			return true
+		}
+		return false
+	}
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'method') {
-			colors.push([x.children[1]!, 'entity.name.function'])
-		} else if (x.type == 'singleton_method') {
-			colors.push([x.children[3], 'entity.name.function'])
-		} else if (variables.includes(x.type)) {
-			colors.push([x, 'variable'])
-		} else if (x.type == 'call' && x.lastChild && x.lastChild.type == 'identifier') {
-			colors.push([x.lastChild, 'entity.name.function'])
-		} else if (x.type == 'method_call' && x.firstChild && x.firstChild.type == 'identifier') {
-			colors.push([x.firstChild, 'entity.name.function'])
-		} else if (x.type == 'end') {
-			if (x.parent && control.includes(x.parent.type)) {
-				colors.push([x, 'keyword.control'])
-			} else {
-				colors.push([x, 'keyword'])
-			}
-		} else if (x.type == 'constant') {
-			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'symbol') {
-			colors.push([x, 'constant.language'])
+		switch (x.type) {
+			case 'method':
+				colors.push([x.children[1]!, 'entity.name.function'])
+				break
+			case 'singleton_method':
+				colors.push([x.children[3], 'entity.name.function'])
+				break
+			case 'instance_variable':
+			case 'class_variable':
+			case 'global_variable':
+				colors.push([x, 'variable'])
+				break
+			case 'end':
+				if (controlKeywords.includes(x.parent!.type)) {
+					colors.push([x, 'keyword.control'])
+				} else {
+					colors.push([x, 'keyword'])
+				}
+				break
+			case 'constant':
+				colors.push([x, 'entity.name.type'])
+				break
+			case 'symbol':
+				colors.push([x, 'constant.language'])
+				break
+			case 'identifier':
+				if (classKeywords.includes(x.text) && isChildOf(x, 'class')) {
+					colors.push([x, 'keyword'])
+				} else if (moduleKeywords.includes(x.text) && isChildOf(x, 'module')) {
+					colors.push([x, 'keyword'])
+				} else if (x.parent!.type == 'method_call' && x.parent!.firstChild!.equals(x)) {
+					colors.push([x, 'entity.name.function'])
+				} else if (x.parent!.type == 'call' && x.parent!.lastChild!.equals(x)) {
+					colors.push([x, 'entity.name.function'])
+				}
+				break
 		}
 		for (const child of x.children) {
 			scan(child)

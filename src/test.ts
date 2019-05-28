@@ -34,12 +34,85 @@ const goTests: TestCase[] = [
         ['Foo', 'variable']
     ],
 ]
-test(goTests, colors.colorGo)
+test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
 
-async function test(testCases: TestCase[], color: colors.ColorFunction) {
+const rubyTests: TestCase[] = [
+    [
+        `def x.f
+            1
+        end`,
+        ['f', 'entity.name.function'],
+    ],
+    [
+        `def f
+            1
+        end`,
+        ['f', 'entity.name.function'],
+    ],
+    [
+        `class C
+            def f
+                @x = 1
+            end
+        end`,
+        ['@x', 'variable'],
+    ],
+    [
+        `class C
+            private
+            def f
+                1
+            end
+        end`,
+        ['C', 'entity.name.type'], ['private', 'keyword'], ['f', 'entity.name.function'], ['end', 'keyword'],
+    ],
+    [
+        `class C
+            private :f
+            def f
+                1
+            end
+        end`,
+        ['C', 'entity.name.type'], ['private', 'keyword'], [':f', 'constant.language'], ['private', {not:'entity.name.function'}], ['f', 'entity.name.function'], ['end', 'keyword'],
+    ],
+    [
+        `module M
+            private
+            def f
+                1
+            end
+        end`,
+        ['M', 'entity.name.type'], ['private', 'keyword'], ['f', 'entity.name.function'], ['end', 'keyword'],
+    ],
+    [
+        `module M
+            private :f
+            def f
+                1
+            end
+        end`,
+        ['M', 'entity.name.type'], ['private', 'keyword'], ['private', {not:'entity.name.function'}], [':f', 'constant.language'], ['f', 'entity.name.function'], ['end', 'keyword'],
+    ],
+    [
+        `while true
+            puts "Hi"
+        end`,
+        ['end', 'keyword.control'], ['end', {not: 'keyword'}],
+    ],
+    [
+        `foo 1`,
+        ['foo', 'entity.name.function'],
+    ],
+    [
+        `foo.bar`,
+        ['bar', 'entity.name.function'],
+    ],
+]
+test(rubyTests, 'parsers/tree-sitter-ruby.wasm', colors.colorRuby)
+
+async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunction) {
     await Parser.init()
     const parser = new Parser()
-    const wasm = 'parsers/tree-sitter-go.wasm'
     const lang = await Parser.Language.load(wasm)
     parser.setLanguage(lang)
     for (const [src, ...expect] of testCases) {

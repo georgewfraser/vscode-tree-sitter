@@ -16,8 +16,13 @@
             "name": "keyword.control.ruby"
         },
         {
-            "comment": "TODO: Can these be recognized better by tree-sitter? See https://github.com/georgewfraser/vscode-tree-sitter/pull/16",
-            "match": "\\b(initialize|new|loop|include|extend|prepend|raise|fail|attr_reader|attr_writer|attr_accessor|attr|catch|throw|private|private_class_method|module_function|public|public_class_method|protected|refine|using)\\b(?![?!])",
+            "comment": "These aren't actual keywords, but they're builtin methods that basically function as keywords",
+            "match": "\\b(new|loop|raise|fail|catch|throw)\\b",
+            "name": "keyword.control.special-method.ruby"
+        },
+        {
+            "comment": "These aren't actual keywords, but they're builtin methods that basically function as keywords",
+            "match": "\\b(refine|using)\\b(?![?!])",
             "name": "keyword.other.special-method.ruby"
         },
         {
