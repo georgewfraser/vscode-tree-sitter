@@ -281,21 +281,45 @@ export function colorRust(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 			scanUse(child)
 		}
 	}
+	function scanQualifier(x: Parser.SyntaxNode) {
+		if (x.type == 'identifier' && looksLikeType(x.text)) {
+			colors.push([x, 'entity.name.type'])
+		}
+		for (const child of x.children) {
+			scanQualifier(child)
+		}
+	}
 	function scan(x: Parser.SyntaxNode) {
 		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent && x.parent.type == 'function_item' && x.parent.parent && x.parent.parent.type == 'declaration_list') {
-			colors.push([x, 'variable'])
-		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'function_item') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'scoped_identifier' && x.parent.parent && x.parent.parent.type == 'function_declarator') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'use_declaration') {
-			scanUse(x)
-			return
-		} else if (x.type == 'type_identifier' || x.type == 'primitive_type') {
-			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'field_identifier') {
-			colors.push([x, 'variable'])
+		switch (x.type) {
+			case 'scoped_identifier':
+				for (const child of x.children) {
+					if (!child.equals(x.lastChild!)) {
+						scanQualifier(child)
+					}
+				}
+				return
+			case 'identifier':
+				if (x.parent!.type == 'function_item') {
+					if (x.parent!.parent!.type == 'declaration_list') {
+						colors.push([x, 'variable'])
+					} else {
+						colors.push([x, 'entity.name.function'])
+					}
+				} else if (x.parent!.type == 'scoped_identifier' && x.parent!.parent!.type == 'function_declarator') {
+					colors.push([x, 'entity.name.function'])
+				}
+				return
+			case 'use_declaration':
+				scanUse(x)
+				return
+			case 'type_identifier':
+			case 'primitive_type':
+				colors.push([x, 'entity.name.type'])
+				break
+			case 'field_identifier':
+				colors.push([x, 'variable'])
+				break
 		}
 		for (const child of x.children) {
 			scan(child)

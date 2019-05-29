@@ -110,6 +110,15 @@ const rubyTests: TestCase[] = [
 ]
 test(rubyTests, 'parsers/tree-sitter-ruby.wasm', colors.colorRuby)
 
+const rustTests: TestCase[] = [
+    [
+        `let x = Foo::Bar(x)`, 
+        ['Foo', 'entity.name.type'], ['Bar', {not:'entity.name.type'}]
+    ],
+    // TODO more coverage
+]
+test(rustTests, 'parsers/tree-sitter-rust.wasm', colors.colorRust)
+
 async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunction) {
     await Parser.init()
     const parser = new Parser()
