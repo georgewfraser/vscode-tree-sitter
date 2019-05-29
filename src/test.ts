@@ -139,6 +139,44 @@ const rustTests: TestCase[] = [
 ]
 test(rustTests, 'parsers/tree-sitter-rust.wasm', colors.colorRust)
 
+const typescriptTests: TestCase[] = [
+    [
+        `function foo() { }`,
+        ['foo', 'entity.name.function'],
+    ],
+    [
+        `let x: number = 1`,
+        ['number', 'entity.name.type'],
+    ],
+    [
+        `let x: Foo = 1`,
+        ['Foo', 'entity.name.type'],
+    ],
+    [
+        `let x = {y:1}`,
+        ['y', 'variable'],
+    ],
+    [
+        `class Foo {
+            bar() { return 1 }
+        }`,
+        ['Foo', 'entity.name.type'], ['bar', 'variable']
+    ],
+    [
+        `class Foo {
+            get bar() { return 1 }
+        }`,
+        ['Foo', 'entity.name.type'], ['get', 'keyword'], ['bar', 'variable']
+    ],
+    [
+        `class Foo {
+            set bar(bar: number) { }
+        }`,
+        ['Foo', 'entity.name.type'], ['set', 'keyword'], ['bar', 'variable']
+    ],
+]
+test(typescriptTests, 'parsers/tree-sitter-typescript.wasm', colors.colorTypescript)
+
 async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunction) {
     await Parser.init()
     const parser = new Parser()
