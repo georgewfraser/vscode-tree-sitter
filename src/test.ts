@@ -112,8 +112,28 @@ test(rubyTests, 'parsers/tree-sitter-ruby.wasm', colors.colorRuby)
 
 const rustTests: TestCase[] = [
     [
+        `use foo::{Bar}`,
+        ['Bar', 'entity.name.type',]
+    ],
+    [
         `let x = Foo::Bar(x)`, 
         ['Foo', 'entity.name.type'], ['Bar', {not:'entity.name.type'}]
+    ],
+    [
+        `impl Foo {
+            pub fn bar() { }
+        }`,
+        ['Foo', 'entity.name.type'], ['bar', 'variable'], ['bar', {not:'entity.name.function'}]
+    ],
+    [
+        `fn foo() { }`,
+        ['foo', 'entity.name.function']
+    ],
+    [
+        `struct Foo {
+            bar: int
+        }`,
+        ['Foo', 'entity.name.type'], ['bar', 'variable']
     ],
     // TODO more coverage
 ]
