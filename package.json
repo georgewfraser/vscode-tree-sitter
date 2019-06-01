@@ -68,6 +68,7 @@
 		"watch": "tsc -watch -p ./",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"test": "npm run compile && node ./out/test",
+		"benchmark": "npm run compile && node ./out/benchmark",
 		"debug": "npm run compile && node --nolazy --inspect-brk=9229 ./out/test",
 		"build": "vsce package -o build.vsix"
 	},
