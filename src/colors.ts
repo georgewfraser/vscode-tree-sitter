@@ -53,6 +53,13 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			return false
 		}
 
+		isUnknown(id: string): boolean {
+			if (packages[id]) return false
+			if (this.locals.has(id)) return false
+			if (this.parent) return this.parent.isUnknown(id)
+			return true
+		}
+
 		isModified(id: string): boolean {
 			if (this.locals.has(id)) return this.locals.get(id)!.modified
 			if (this.parent) return this.parent.isModified(id)
@@ -97,6 +104,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				scanChildren(x, scope)
 				break
 			case 'short_var_declaration': 
+			case 'range_clause':
 				if (!scope.isRoot()) {
 					for (const id of x.firstChild!.children) {
 						if (id.type == 'identifier') {
@@ -127,18 +135,29 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				if (!scope.isRoot()) {
 					scope.referenceLocal(x)
 				}
-				if (visible && x.parent!.type == 'function_declaration') {
-					// func f() { ... }
-					colors.push([x, 'entity.name.function'])
-				}
-				break
-			case 'function_declaration':
-			case 'method_declaration':
-			case 'func_literal':
-			case 'block':
-				// Skip top-level declarations that aren't visible
-				if (visible || !scope.isRoot()) {
-					scanChildren(x, new Scope(scope))
+				if (visible) {
+					switch (x.parent!.type) {
+						case 'function_declaration':
+							// func f() { ... }
+							colors.push([x, 'entity.name.function'])
+							break
+						case 'var_spec':
+							if (x.parent!.parent!.parent!.type == 'source_file') {
+								colors.push([x, 'variable'])
+							}
+						case 'call_expression':
+							// f()
+							if (scope.isUnknown(x.text)) {
+								colors.push([x, 'entity.name.function'])
+							}
+							break
+						default:
+							// x
+							if (scope.isUnknown(x.text)) {
+								colors.push([x, 'variable'])
+							}
+							break
+					}
 				}
 				break
 			case 'type_identifier':
@@ -149,10 +168,29 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				break
 			case 'field_identifier':
 				if (visible) {
-					// pkg.member
-					const isPackage = x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)
-					// obj.member
-					if (!isPackage) colors.push([x, 'variable'])
+					switch (x.parent!.type) {
+						case 'selector_expression':
+							if (scope.isPackage(x.parent!.firstChild!.text)) {
+								switch (x.parent!.parent!.type) {
+									case 'call_expression':
+											colors.push([x, 'entity.name.function'])
+										break
+									default:
+											colors.push([x, 'variable'])
+										break
+								}
+							}
+							break
+					}
+				}
+				break
+			case 'function_declaration':
+			case 'method_declaration':
+			case 'func_literal':
+			case 'block':
+				// Skip top-level declarations that aren't visible
+				if (visible || !scope.isRoot()) {
+					scanChildren(x, new Scope(scope))
 				}
 				break
 			default:
