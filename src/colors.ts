@@ -7,9 +7,11 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 	var packages: {[id: string]: boolean} = {}
 	function scanImport(x: Parser.SyntaxNode) {
 		if (x.type == 'import_spec') {
-			const str = x.firstChild!.text
-			const full = str.substring(1, str.length - 1)
-			const parts = full.split('/')
+			let str = x.firstChild!.text
+			if (str.startsWith('"')) {
+				str = str.substring(1, str.length - 1)
+			}
+			const parts = str.split('/')
 			const last = parts[parts.length - 1]
 			packages[last] = true
 		}
