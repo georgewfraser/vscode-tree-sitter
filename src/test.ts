@@ -11,11 +11,11 @@ const goTests: TestCase[] = [
     ],
     [
         `package p; type Foo struct { x int }`, 
-        ['Foo', 'entity.name.type'], ['x', 'variable']
+        ['Foo', 'entity.name.type'], ['x', {not: 'variable'}]
     ],
     [
         `package p; type Foo interface { GetX() int }`, 
-        ['Foo', 'entity.name.type'], ['GetX', 'variable']
+        ['Foo', 'entity.name.type'], ['int', 'entity.name.type'], ['GetX', {not: 'variable'}]
     ],
     [
         `package p; func f() { x := 1; x := 2 }`, 
@@ -23,15 +23,19 @@ const goTests: TestCase[] = [
     ],
     [
         `package p; func f(foo T) { foo.Foo() }`, 
-        ['Foo', 'variable']
+        ['Foo', {not: 'entity.name.function'}]
+    ],
+    [
+        `package p; func f() { Foo() }`, 
+        ['Foo', 'entity.name.function']
     ],
     [
         `package p; import "foo"; func f() { foo.Foo() }`, 
-        ['Foo', {not:'variable'}]
+        ['Foo', 'entity.name.function']
     ],
     [
         `package p; import "foo"; func f(foo T) { foo.Foo() }`, 
-        ['Foo', 'variable']
+        ['Foo', {not: 'entity.name.function'}]
     ],
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
