@@ -164,10 +164,9 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 					colors.push([x, 'entity.name.type'])
 				}
 				break
-			case 'field_identifier':
-				// pkg.member
-				if (visible && x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)) {
-					colors.push([x, 'variable'])
+			case 'selector_expression':
+				if (visible && scope.isPackage(x.firstChild!.text)) {
+					scanPackageMember(x.lastChild!, scope)
 				}
 				break
 			case 'function_declaration':
@@ -184,6 +183,13 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				if (visible || !scope.isRoot()) {
 					scanChildren(x, scope)
 				}
+		}
+	}
+	function scanPackageMember(x: Parser.SyntaxNode, scope: Scope) {
+		switch (x.type) {
+			case 'field_identifier':
+				colors.push([x, 'variable'])
+				break
 		}
 	}
 	function scanCall(x: Parser.SyntaxNode, scope: Scope) {
