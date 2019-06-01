@@ -131,6 +131,9 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				}
 				scanChildren(x, scope)
 				break
+			case 'call_expression':
+				scanCall(x.firstChild!, scope)
+				break
 			case 'identifier':
 				if (!scope.isRoot()) {
 					scope.referenceLocal(x)
@@ -142,15 +145,10 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 							colors.push([x, 'entity.name.function'])
 							break
 						case 'var_spec':
+							// var x = 1
 							if (x.parent!.parent!.parent!.type == 'source_file') {
 								colors.push([x, 'variable'])
 							}
-						case 'call_expression':
-							// f()
-							if (scope.isUnknown(x.text)) {
-								colors.push([x, 'entity.name.function'])
-							}
-							break
 						default:
 							// x
 							if (scope.isUnknown(x.text)) {
@@ -167,21 +165,9 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				}
 				break
 			case 'field_identifier':
-				if (visible) {
-					switch (x.parent!.type) {
-						case 'selector_expression':
-							if (scope.isPackage(x.parent!.firstChild!.text)) {
-								switch (x.parent!.parent!.type) {
-									case 'call_expression':
-											colors.push([x, 'entity.name.function'])
-										break
-									default:
-											colors.push([x, 'variable'])
-										break
-								}
-							}
-							break
-					}
+				// pkg.member
+				if (visible && x.parent!.type == 'selector_expression' && scope.isPackage(x.parent!.firstChild!.text)) {
+					colors.push([x, 'variable'])
 				}
 				break
 			case 'function_declaration':
@@ -198,6 +184,28 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				if (visible || !scope.isRoot()) {
 					scanChildren(x, scope)
 				}
+		}
+	}
+	function scanCall(x: Parser.SyntaxNode, scope: Scope) {
+		switch (x.type) {
+			case 'parenthesized_expression':
+				scanCall(x.firstChild!, scope)
+				return
+			case 'selector_expression':
+				if (scope.isPackage(x.firstChild!.text)) {
+					scanCall(x.lastChild!, scope)
+				} else {
+					scan(x, scope)
+				}
+				return
+			case 'identifier':
+			case 'field_identifier':
+				// TODO relying on calls to identify functions is unreliabe, because functions can be referenced by name.
+				// We'll need actual semantic information from Go language server to do this right.
+				colors.push([x, 'entity.name.function'])
+				return
+			default:
+				scan(x, scope)
 		}
 	}
 	function scanChildren(x: Parser.SyntaxNode, scope: Scope) {
