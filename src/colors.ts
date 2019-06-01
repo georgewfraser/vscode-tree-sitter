@@ -170,6 +170,11 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				}
 				break
 			case 'function_declaration':
+				// Skip top-level declarations that aren't visible
+				if (visible || !scope.isRoot()) {
+					scanFunc(x, new Scope(scope))
+				}
+				break
 			case 'method_declaration':
 			case 'func_literal':
 			case 'block':
@@ -183,6 +188,21 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				if (visible || !scope.isRoot()) {
 					scanChildren(x, scope)
 				}
+		}
+	}
+	function scanFunc(x: Parser.SyntaxNode, scope: Scope) {
+		for (const child of x.children) {
+			switch (child.type) {
+				case 'identifier':
+					colors.push([child, 'entity.name.function'])
+					break
+				case 'type_identifier':
+					colors.push([child, 'entity.name.type'])
+					break
+				default:
+					scanChildren(child, scope)
+					break
+			}
 		}
 	}
 	function scanPackageMember(x: Parser.SyntaxNode, scope: Scope) {
