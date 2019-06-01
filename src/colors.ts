@@ -133,6 +133,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				break
 			case 'call_expression':
 				scanCall(x.firstChild!, scope)
+				scan(x.lastChild!, scope)
 				break
 			case 'identifier':
 				if (!scope.isRoot()) {
@@ -171,8 +172,10 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				break
 			case 'function_declaration':
 				// Skip top-level declarations that aren't visible
-				if (visible || !scope.isRoot()) {
+				if (visible) {
 					scanFunc(x, new Scope(scope))
+				} else if (!scope.isRoot()) {
+					scanChildren(x, new Scope(scope))
 				}
 				break
 			case 'method_declaration':

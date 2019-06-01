@@ -40,6 +40,10 @@ const goTests: TestCase[] = [
     [
         `package p; func f(x other.T) { }`,
         ['T', 'entity.name.type'],
+    ],
+    [
+        `package p; var _ = f(Foo{})`,
+        ['Foo', 'entity.name.type'],
     ]
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
