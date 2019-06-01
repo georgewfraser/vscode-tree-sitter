@@ -29,6 +29,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 		}
 
 		declareLocal(id: string) {
+			if (this.isRoot()) return
 			if (this.locals.has(id)) {
 				this.locals.get(id)!.modified = true
 			} else {
@@ -37,11 +38,13 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 		}
 
 		modifyLocal(id: string) {
+			if (this.isRoot()) return
 			if (this.locals.has(id)) this.locals.get(id)!.modified = true
 			else if (this.parent) this.parent.modifyLocal(id)
 		}
 
 		referenceLocal(x: Parser.SyntaxNode) {
+			if (this.isRoot()) return
 			const id = x.text
 			if (this.locals.has(id)) this.locals.get(id)!.references.push(x)
 			else if (this.parent) this.parent.referenceLocal(x)
@@ -85,164 +88,151 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 		}
 	}
 	const colors: [Parser.SyntaxNode, string][] = []
-	function scan(x: Parser.SyntaxNode, scope: Scope) {
-		const visible = isVisible(x, visibleRanges)
+	const rootScope = new Scope(null)
+	function scanSourceFile() {
+		for (const top of root.namedChildren) {
+			scanTopLevelDeclaration(top)
+		}
+	}
+	function scanTopLevelDeclaration(x: Parser.SyntaxNode) {
 		switch (x.type) {
 			case 'import_declaration':
 				scanImport(x)
 				break
-			case 'parameter_declaration':
-			case 'var_spec':
-			case 'const_spec':
-				if (!scope.isRoot()) {
-					for (const id of x.children) {
-						if (id.type == 'identifier') {
-							scope.declareLocal(id.text)
-						}
-					}
-				}
-				scanChildren(x, scope)
-				break
-			case 'short_var_declaration': 
-			case 'range_clause':
-				if (!scope.isRoot()) {
-					for (const id of x.firstChild!.children) {
-						if (id.type == 'identifier') {
-							scope.declareLocal(id.text)
-						}
-					}
-				}
-				scanChildren(x, scope)
-				break
-			case 'inc_statement':
-			case 'dec_statement':
-				if (!scope.isRoot()) {
-					scope.modifyLocal(x.firstChild!.text)
-				}
-				scanChildren(x, scope)
-				break
-			case 'assignment_statement':
-				if (!scope.isRoot()) {
-					for (const id of x.firstChild!.children) {
-						if (id.type == 'identifier') {
-							scope.modifyLocal(id.text)
-						}
-					}
-				}
-				scanChildren(x, scope)
-				break
-			case 'call_expression':
-				scanCall(x.firstChild!, scope)
-				scan(x.lastChild!, scope)
-				break
-			case 'identifier':
-				if (!scope.isRoot()) {
-					scope.referenceLocal(x)
-				}
-				if (visible) {
-					switch (x.parent!.type) {
-						case 'function_declaration':
-							// func f() { ... }
-							colors.push([x, 'entity.name.function'])
-							break
-						case 'var_spec':
-							// var x = 1
-							if (x.parent!.parent!.parent!.type == 'source_file') {
-								colors.push([x, 'variable'])
-							}
-						default:
-							// x
-							if (scope.isUnknown(x.text)) {
-								colors.push([x, 'variable'])
-							}
-							break
-					}
-				}
-				break
-			case 'type_identifier':
-				if (visible) {
-					// x: type
-					colors.push([x, 'entity.name.type'])
-				}
-				break
-			case 'selector_expression':
-				if (visible && scope.isPackage(x.firstChild!.text)) {
-					scanPackageMember(x.lastChild!, scope)
-				}
-				break
 			case 'function_declaration':
-				// Skip top-level declarations that aren't visible
-				if (visible) {
-					scanFunc(x, new Scope(scope))
-				} else if (!scope.isRoot()) {
-					scanChildren(x, new Scope(scope))
-				}
-				break
 			case 'method_declaration':
-			case 'func_literal':
-			case 'block':
-				// Skip top-level declarations that aren't visible
-				if (visible || !scope.isRoot()) {
-					scanChildren(x, new Scope(scope))
-				}
+				if (!isVisible(x, visibleRanges)) return
+				scanFunctionDeclaration(x)
 				break
-			default:
-				// Skip top-level declarations that aren't visible
-				if (visible || !scope.isRoot()) {
-					scanChildren(x, scope)
-				}
+			case 'const_declaration':
+			case 'var_declaration':
+				if (!isVisible(x, visibleRanges)) return
+				scanVarDeclaration(x)
+				break
+			case 'type_declaration':
+				if (!isVisible(x, visibleRanges)) return
+				scanTypeDeclaration(x)
+				break
 		}
 	}
-	function scanFunc(x: Parser.SyntaxNode, scope: Scope) {
-		for (const child of x.children) {
+	function scanFunctionDeclaration(x: Parser.SyntaxNode) {
+		const scope = new Scope(rootScope)
+		for (const child of x.namedChildren) {
 			switch (child.type) {
 				case 'identifier':
-					colors.push([child, 'entity.name.function'])
-					break
-				case 'type_identifier':
-					colors.push([child, 'entity.name.type'])
+					if (isVisible(child, visibleRanges)) {
+						colors.push([child, 'entity.name.function'])
+					}
 					break
 				default:
-					scanChildren(child, scope)
-					break
+					scanExpr(child, scope)
 			}
 		}
 	}
-	function scanPackageMember(x: Parser.SyntaxNode, scope: Scope) {
+	function scanVarDeclaration(x: Parser.SyntaxNode) {
+		for (const varSpec of x.namedChildren) {
+			for (const child of varSpec.namedChildren) {
+				switch (child.type) {
+					case 'identifier':
+						if (isVisible(child, visibleRanges)) {
+							colors.push([child, 'variable'])
+						}
+						break
+					default:
+						scanExpr(child, rootScope)
+				}
+			}
+		}
+	}
+	function scanTypeDeclaration(x: Parser.SyntaxNode) {
+		for (const child of x.namedChildren) {
+			scanExpr(child, rootScope)
+		}
+	}
+	function scanExpr(x: Parser.SyntaxNode, scope: Scope) {
 		switch (x.type) {
-			case 'field_identifier':
-				colors.push([x, 'variable'])
+			case 'func_literal':
+			case 'block':
+				scope = new Scope(scope)
 				break
+			case 'parameter_declaration':
+			case 'var_spec':
+			case 'const_spec':
+				for (const id of x.namedChildren) {
+					if (id.type == 'identifier') {
+						scope.declareLocal(id.text)
+					}
+				}
+				break
+			case 'short_var_declaration': 
+			case 'range_clause':
+				for (const id of x.firstChild!.namedChildren) {
+					if (id.type == 'identifier') {
+						scope.declareLocal(id.text)
+					}
+				}
+				break
+			case 'inc_statement':
+			case 'dec_statement':
+				scope.modifyLocal(x.firstChild!.text)
+				break
+			case 'assignment_statement':
+				for (const id of x.firstChild!.namedChildren) {
+					if (id.type == 'identifier') {
+						scope.modifyLocal(id.text)
+					}
+				}
+				break
+			case 'call_expression':
+				scanCall(x.firstChild!, scope)
+				scanExpr(x.lastChild!, scope)
+				return
+			case 'identifier':
+				scope.referenceLocal(x)
+				if (isVisible(x, visibleRanges) && scope.isUnknown(x.text)) {
+					colors.push([x, 'variable'])
+				}
+				return
+			case 'selector_expression':
+				if (isVisible(x, visibleRanges) && scope.isPackage(x.firstChild!.text)) {
+					colors.push([x.lastChild!, 'variable'])
+				}
+				scanExpr(x.firstChild!, scope)
+				scanExpr(x.lastChild!, scope)
+				return
+			case 'type_identifier':
+				if (isVisible(x, visibleRanges)) {
+					colors.push([x, 'entity.name.type'])
+				}
+				return
+		}
+		for (const child of x.namedChildren) {
+			scanExpr(child, scope)
 		}
 	}
 	function scanCall(x: Parser.SyntaxNode, scope: Scope) {
 		switch (x.type) {
-			case 'parenthesized_expression':
-				scanCall(x.firstChild!, scope)
+			case 'identifier':
+				if (isVisible(x, visibleRanges) && scope.isUnknown(x.text)) {
+					colors.push([x, 'entity.name.function'])
+				}
+				scope.referenceLocal(x)
 				return
 			case 'selector_expression':
-				if (scope.isPackage(x.firstChild!.text)) {
-					scanCall(x.lastChild!, scope)
-				} else {
-					scan(x, scope)
+				if (isVisible(x, visibleRanges) && scope.isPackage(x.firstChild!.text)) {
+					colors.push([x.lastChild!, 'entity.name.function'])
 				}
+				scanExpr(x.firstChild!, scope)
+				scanExpr(x.lastChild!, scope)
 				return
-			case 'identifier':
-			case 'field_identifier':
-				// TODO relying on calls to identify functions is unreliabe, because functions can be referenced by name.
-				// We'll need actual semantic information from Go language server to do this right.
-				colors.push([x, 'entity.name.function'])
+			case 'unary_expression':
+				scanCall(x.firstChild!, scope)
 				return
 			default:
-				scan(x, scope)
+				scanExpr(x, scope)
 		}
 	}
-	function scanChildren(x: Parser.SyntaxNode, scope: Scope) {
-		for (const child of x.children) {
-			scan(child, scope)
-		}
-	}
-	scan(root, new Scope(null))
+	scanSourceFile()
 	for (const scope of allScopes) {
 		for (const local of scope.modifiedLocals()) {
 			colors.push([local, 'markup.underline'])
