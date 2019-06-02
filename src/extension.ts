@@ -2,21 +2,18 @@ import * as vscode from 'vscode'
 import * as Parser from 'web-tree-sitter'
 import * as path from 'path'
 import * as scopes from './scopes'
-import * as colors from './colors'
 
-// Be sure to declare the language in package.json and include a minimalist grammar.
-const languages: {[id: string]: {module: string, color: colors.ColorFunction, parser?: Parser}} = {
-	'go': {module: 'tree-sitter-go', color: colors.colorGo},
-	'cpp': {module: 'tree-sitter-cpp', color: colors.colorCpp},
-	'rust': {module: 'tree-sitter-rust', color: colors.colorRust},
-	'ruby': {module: 'tree-sitter-ruby', color: colors.colorRuby},
-	'typescript': {module: 'tree-sitter-typescript', color: colors.colorTypescript},
-	'javascript': {module: 'tree-sitter-javascript', color: colors.colorTypescript},
+// Parse of all visible documents
+const trees = new Map<string, Parser.Tree>()
+
+export function tree(uri: vscode.Uri) {
+	return trees.get(uri.toString())
 }
 
 // Create decoration types from scopes lazily
 const decorationCache = new Map<string, vscode.TextEditorDecorationType>()
-function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
+const warnedScopes = new Set<string>()
+export function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
 	// If we've already created a decoration for `scope`, use it
 	if (decorationCache.has(scope)) {
 		return decorationCache.get(scope)
@@ -29,6 +26,10 @@ function decoration(scope: string): vscode.TextEditorDecorationType|undefined {
 		return decoration
 	}
 	// Otherwise, give up, there is no color available for this scope
+	if (!warnedScopes.has(scope)) {
+		console.warn(scope, 'was not found in the current theme')
+		warnedScopes.add(scope)
+	}
 	return undefined
 }
 function createDecorationFromTextmate(themeStyle: scopes.TextMateRuleSettings): vscode.TextEditorDecorationType {
@@ -75,35 +76,30 @@ async function loadStyles() {
 const initParser = Parser.init() // TODO this isn't a field, suppress package member coloring like Go
 
 // Called when the extension is first activated by user opening a file with the appropriate language
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext, languages: {[id: string]: {wasm: string, parser?: Parser}}) {
 	console.log("Activating tree-sitter...")
-	// Parse of all visible documents
-	const trees: {[uri: string]: Parser.Tree} = {}
 	async function open(editor: vscode.TextEditor) {
 		const language = languages[editor.document.languageId]
 		if (language == null) return
 		if (language.parser == null) {
-			const absolute = path.join(context.extensionPath, 'parsers', language.module + '.wasm')
-			const wasm = path.relative(process.cwd(), absolute)
+			const wasm = path.relative(process.cwd(), language.wasm)
 			const lang = await Parser.Language.load(wasm)
 			const parser = new Parser()
 			parser.setLanguage(lang)
 			language.parser = parser
 		}
 		const t = language.parser.parse(editor.document.getText()) // TODO don't use getText, use Parser.Input
-		trees[editor.document.uri.toString()] = t
-		colorUri(editor.document.uri)
+		trees.set(editor.document.uri.toString(), t)
 	}
 	// NOTE: if you make this an async function, it seems to cause edit anomalies
 	function edit(edit: vscode.TextDocumentChangeEvent) {
 		const language = languages[edit.document.languageId]
 		if (language == null || language.parser == null) return
 		updateTree(language.parser, edit)
-		colorUri(edit.document.uri)
 	}
 	function updateTree(parser: Parser, edit: vscode.TextDocumentChangeEvent) {
 		if (edit.contentChanges.length == 0) return
-		const old = trees[edit.document.uri.toString()]
+		const old = trees.get(edit.document.uri.toString())!
 		for (const e of edit.contentChanges) {
 			const startIndex = e.rangeOffset
 			const oldEndIndex = e.rangeOffset + e.rangeLength
@@ -118,51 +114,15 @@ export async function activate(context: vscode.ExtensionContext) {
 			old.edit(delta)
 		}
 		const t = parser.parse(edit.document.getText(), old) // TODO don't use getText, use Parser.Input
-		trees[edit.document.uri.toString()] = t
+		trees.set(edit.document.uri.toString(), t)
 	}
 	function asPoint(pos: vscode.Position): Parser.Point {
 		return {row: pos.line, column: pos.character}
 	}
 	function close(doc: vscode.TextDocument) {
-		delete trees[doc.uri.toString()]
+		trees.delete(doc.uri.toString())
 	}
-	function colorUri(uri: vscode.Uri) {
-		for (const editor of vscode.window.visibleTextEditors) {
-			if (editor.document.uri == uri) {
-				colorEditor(editor)
-			}
-		}
-	}
-	const warnedScopes = new Set<string>()
-	function colorEditor(editor: vscode.TextEditor) {
-		const t = trees[editor.document.uri.toString()]
-		if (t == null) return
-		const language = languages[editor.document.languageId]
-		if (language == null) return
-		const scopes = language.color(t.rootNode, visibleLines(editor))
-		const nodes = new Map<string, Parser.SyntaxNode[]>()
-		for (const [x, scope] of scopes) {
-			if (!nodes.has(scope)) nodes.set(scope, [])
-			nodes.get(scope)!.push(x)
-		}
-		for (const scope of nodes.keys()) {
-			const dec = decoration(scope)
-			if (dec) {
-				const ranges = nodes.get(scope)!.map(range)
-				editor.setDecorations(dec, ranges)
-			} else if (!warnedScopes.has(scope)) {
-				console.warn(scope, 'was not found in the current theme')
-				warnedScopes.add(scope)
-			}
-		}
-		for (const scope of decorationCache.keys()) {
-			if (!nodes.has(scope)) {
-				const dec = decorationCache.get(scope)!
-				editor.setDecorations(dec, [])
-			}
-		}
-	}
-	async function colorAllOpen() {
+	async function openAll() {
 		for (const editor of vscode.window.visibleTextEditors) {
 			await open(editor)
 		}
@@ -173,32 +133,19 @@ export async function activate(context: vscode.ExtensionContext) {
 			|| event.affectsConfiguration("editor.tokenColorCustomizations")
 		if (colorizationNeedsReload) {
 			await loadStyles()
-			colorAllOpen()
 		}
 	}
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(onChangeConfiguration))
-	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(colorAllOpen))
+	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(openAll))
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(edit))
 	context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(close))
-	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(change => colorEditor(change.textEditor)))
 	// Don't wait for the initial color, it takes too long to inspect the themes and causes VSCode extension host to hang
-	async function activateLazily() {
-		await loadStyles()
-		await initParser
-		colorAllOpen()
-	}
-	activateLazily()
+	await loadStyles()
+	await initParser
+	await openAll()
 }
 
-function visibleLines(editor: vscode.TextEditor) {
-	return editor.visibleRanges.map(range => {
-		const start = range.start.line
-		const end = range.end.line
-		return {start, end}
-	})
-}
-
-function range(x: Parser.SyntaxNode): vscode.Range {
+export function range(x: Parser.SyntaxNode): vscode.Range {
 	return new vscode.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
 }
 

@@ -18,6 +18,6 @@ steps:
   displayName: 'Install NPM deps'
 - script: 'npm run compile'
   displayName: 'Compile Typescript'
-- script: 'node out/test.js'
+- script: 'npm run-script test'
   displayName: 'Run tests'
   failOnStderr: true

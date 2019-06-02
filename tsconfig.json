@@ -8,6 +8,7 @@
 		],
 		"sourceMap": true,
 		"rootDir": "src",
+		"declaration": true,
 		/* Strict Type-Checking Option */
 		"strict": true,   /* enable all strict type-checking options */
 		/* Additional Checks */
@@ -19,6 +20,6 @@
 	"exclude": [
 		"examples",
 		"node_modules",
-		".vscode-test"
+		"out",
 	]
 }
