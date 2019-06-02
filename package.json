@@ -3,7 +3,7 @@
 	"displayName": "Tree Sitter",
 	"description": "Use Tree Sitter from VSCode extensions",
 	"icon": "tree-sitter-small.png",
-	"version": "0.1.23",
+	"version": "0.1.24",
 	"publisher": "georgewfraser",
 	"repository": {
 		"type": "git",
