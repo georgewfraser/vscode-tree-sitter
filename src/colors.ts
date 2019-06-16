@@ -159,6 +159,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			case 'type_case_clause':
 			case 'for_statement':
 			case 'if_statement':
+			case 'type_switch_statement':
 				scope = new Scope(scope)
 				break
 			case 'parameter_declaration':
@@ -174,6 +175,13 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			case 'range_clause':
 				for (const id of x.firstChild!.namedChildren) {
 					if (id.type == 'identifier') {
+						scope.declareLocal(id.text)
+					}
+				}
+				break
+			case 'type_switch_guard':
+				if (x.firstChild!.type == 'expression_list') {
+					for (const id of x.firstChild!.namedChildren) {
 						scope.declareLocal(id.text)
 					}
 				}

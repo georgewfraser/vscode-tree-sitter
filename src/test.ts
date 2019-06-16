@@ -100,7 +100,41 @@ const goTests: TestCase[] = [
             }
         }`,
         ['i', {not:'markup.underline'}]
-    ]
+    ],
+    [
+        `package p
+        func f(a interface{}) {
+            switch aa := a.(type) {
+                case *int:
+                    print(aa)
+            }
+        }`,
+        ['aa', {not:'variable'}]
+    ],
+    [
+        `package p
+        func f() {
+            switch aa.(type) {
+                case *int:
+                    print(aa)
+            }
+        }`,
+        ['aa', 'variable']
+    ],
+    [
+        `package p
+        func f(a interface{}) {
+            switch aa := a.(type) {
+                case *int:
+                    print(aa)
+            }
+            switch aa := a.(type) {
+                case *int:
+                    print(aa)
+            }
+        }`,
+        ['aa', {not:'markup.underline'}]
+    ],
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
 
