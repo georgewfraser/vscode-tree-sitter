@@ -76,6 +76,30 @@ const goTests: TestCase[] = [
             }
         }`,
         ['x', {not:'markup.underline'}]
+    ],
+    [
+        `package p
+        func f(a interface{}) int {
+            for i := range 10 {
+                print(i)
+            }
+            for i := range 10 {
+                print(i)
+            }
+        }`,
+        ['i', {not:'markup.underline'}]
+    ],
+    [
+        `package p
+        func f(a interface{}) int {
+            if i := 1; i < 10 {
+                print(i)
+            }
+            if i := 1; i < 10 {
+                print(i)
+            }
+        }`,
+        ['i', {not:'markup.underline'}]
     ]
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)

@@ -157,6 +157,8 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			case 'block':
 			case 'expression_case_clause':
 			case 'type_case_clause':
+			case 'for_statement':
+			case 'if_statement':
 				scope = new Scope(scope)
 				break
 			case 'parameter_declaration':
