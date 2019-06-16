@@ -62,6 +62,20 @@ const goTests: TestCase[] = [
             }
         }`,
         ['x', {not:'markup.underline'}]
+    ],
+    [
+        `package p
+        func f(a interface{}) int {
+            switch a.(type) {
+            case *int: 
+                x := 1
+                return x
+            case *int:
+                x := 2
+                return x
+            }
+        }`,
+        ['x', {not:'markup.underline'}]
     ]
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
