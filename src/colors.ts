@@ -163,6 +163,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				scope = new Scope(scope)
 				break
 			case 'parameter_declaration':
+			case 'variadic_parameter_declaration':
 			case 'var_spec':
 			case 'const_spec':
 				for (const id of x.namedChildren) {

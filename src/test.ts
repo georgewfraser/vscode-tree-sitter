@@ -135,6 +135,13 @@ const goTests: TestCase[] = [
         }`,
         ['aa', {not:'markup.underline'}]
     ],
+    [
+        `package p
+        func f(a ...int) {
+            print(a)
+        }`,
+        ['a', {not:'variable'}]
+    ],
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
 
