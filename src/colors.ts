@@ -153,6 +153,8 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 	}
 	function scanExpr(x: Parser.SyntaxNode, scope: Scope) {
 		switch (x.type) {
+			case 'ERROR':
+				return;
 			case 'func_literal':
 			case 'block':
 			case 'expression_case_clause':
