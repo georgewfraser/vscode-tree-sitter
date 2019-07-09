@@ -279,6 +279,11 @@ export function colorTypescript(x: Parser.SyntaxNode, visibleRanges: {start: num
 	return colors
 }
 
+export function colorVerilog(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
+	console.log(x)
+	return []
+}
+
 export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
 	const colors: [Parser.SyntaxNode, string][] = []
 	const controlKeywords = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block']
