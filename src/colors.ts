@@ -280,8 +280,140 @@ export function colorTypescript(x: Parser.SyntaxNode, visibleRanges: {start: num
 }
 
 export function colorVerilog(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	console.log(x)
-	return []
+	const colors: [Parser.SyntaxNode, string][] = []
+	function scan(x: Parser.SyntaxNode) {
+		if (!isVisible(x, visibleRanges)) return
+		if (x.type in verilogMap) {
+			colors.push([x, verilogMap[x.type]])
+		}
+		for (const child of x.children) {
+			scan(child)
+		}
+	}
+	scan(x)
+
+	return colors
+}
+
+export interface VerilogMap {
+    [key: string] : string;
+} 
+
+const verilogMap: VerilogMap = {
+	"ERROR": "invalid.illegal",
+	"MISSING": "invalid.deprecated",
+	"include_compiler_directive": "keyword.control",
+	"text_macro_definition": "keyword.control",
+	"text_macro_usage": "keyword.control",
+	"id_directive": "keyword.control",
+	"zero_directive": "keyword.control",
+	"timescale_compiler_directive": "keyword.control",
+	"default_nettype_compiler_directive": "keyword.control",
+	"line_compiler_directive": "keyword.control",
+	"text_macro_identifier": "entity.name.type",
+	"include_compiler_directive_relative": "string",
+	"include_compiler_directive_standard": "string",
+	"macro_text": "string",
+	"time_literal": "string",
+	"translation_unit": "source.verilog",
+	"comment": "comment",
+	"module_keyword": "storage.type.module.verilog",
+	"endmodule": "storage.type.module.verilog",
+	"virtual": "storage.modifier",
+	"protected": "storage.modifier",
+	"name_of_instance": "entity.name.type",
+	"assert": "keyword.control",
+	"assume": "keyword.control",
+	"cover": "keyword.control",
+	"expect": "keyword.control",
+	"property": "keyword.control",
+	"always": "keyword.control",
+	"assign": "keyword.control",
+	"begin": "keyword.control",
+	"end": "keyword.control",
+	"for": "keyword.control",
+	"if": "keyword.control",
+	"else": "keyword.control",
+	"import": "keyword.control",
+	"function": "keyword.control",
+	"endfunction": "keyword.control",
+	"task": "keyword.control",
+	"endtask": "keyword.control",
+	"class": "keyword.control",
+	"endclass": "keyword.control",
+	"typedef": "keyword.control",
+	"return": "keyword.control",
+	"extends": "keyword.control",
+	"void": "keyword.control",
+	"forever": "keyword.control",
+	"generate": "keyword.control",
+	"endgenerate": "keyword.control",
+	"case_keyword": "keyword.control",
+	"endcase": "keyword.control",
+	"edge_identifier": "variable",
+	"or": "keyword",
+	",": "keyword",
+	";": "keyword",
+	"input": "variable",
+	"output": "variable",
+	"inout": "variable",
+	"net_type_identifier": "support.storage.type",
+	"net_type": "support.storage.type",
+	"integer_vector_type": "support.storage.type",
+	"integer_atom_type": "support.storage.type",
+	"string": "support.storage.type",
+	"non_integer_type": "support.storage.type",
+	"genvar": "support.storage.type",
+	"variable_port_type": "support.storage.type",
+	"hierarchical_identifier": "keyword",
+	"parameter": "keyword.other.verilog",
+	"localparam": "keyword.other.verilog",
+	"defparam": "keyword.other.verilog",
+	"integral_number": "constant.numeric",
+	"unbased_unsized_literal": "constant.numeric",
+	"unsigned_number": "constant.numeric",
+	"string_literal": "string.quoted",
+	"system_tf_identifier": "entity.name.function",
+	"module_identifier": "entity.name.function",
+	"function_identifier": "entity.name.function",
+	"task_identifier": "entity.name.function",
+	"preproc_arg": "meta.preprocessor.macro",
+	"simple_text_macro_usage": "meta.preprocessor.macro",
+	"unary_operator": "keyword",
+	"@": "keyword.opeartor",
+	"=": "keyword",
+	".": "keyword",
+	"?": "keyword",
+	":": "keyword",
+	"+": "keyword",
+	"-": "keyword",
+	"*": "keyword",
+	"/": "keyword",
+	"%": "keyword",
+	"==": "keyword",
+	"!=": "keyword",
+	"===": "keyword",
+	"!==": "keyword",
+	"==?": "keyword",
+	"!=?": "keyword",
+	"&&": "keyword",
+	"||": "keyword",
+	"**": "keyword",
+	"<": "keyword",
+	"<=": "keyword",
+	">": "keyword",
+	">=": "keyword",
+	"&": "keyword",
+	"|": "keyword",
+	"^": "keyword",
+	"^~": "keyword",
+	"~^": "keyword",
+	">>": "keyword",
+	"<<": "keyword",
+	">>>": "keyword",
+	"<<<": "keyword",
+	"->": "keyword",
+	"<->": "keyword"
 }
 
 export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
