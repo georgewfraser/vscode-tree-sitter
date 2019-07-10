@@ -22,6 +22,10 @@ This extension gives VSCode support for [tree-sitter](http://tree-sitter.github.
 
 ![Typescript](./screenshots/typescript.png)
 
+## Verilog
+
+![Verilog](./screenshots/typescript.png)
+
 ## Contributing
 
 ### Fixing colorization of an existing language
