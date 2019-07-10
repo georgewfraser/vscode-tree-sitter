@@ -300,8 +300,8 @@ export interface VerilogMap {
 } 
 
 const verilogMap: VerilogMap = {
-	"ERROR": "invalid.illegal",
-	"MISSING": "invalid.deprecated",
+	"ERROR": "invalid",
+	"MISSING": "invalid",
 	"include_compiler_directive": "keyword.control",
 	"text_macro_definition": "keyword.control",
 	"text_macro_usage": "keyword.control",
