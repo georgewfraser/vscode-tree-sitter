@@ -102,7 +102,7 @@
 		"tree-sitter-ruby": "^0.15.0",
 		"tree-sitter-rust": "^0.15.0",
 		"tree-sitter-typescript": "^0.14.0",
-		"tree-sitter-verilog": "^0.15.7",
+		"tree-sitter-verilog": "^0.16.0",
 		"tslint": "^5.8.0",
 		"typescript": "^3.1.4",
 		"vsce": "^1.61.0",
