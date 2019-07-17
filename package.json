@@ -36,11 +36,6 @@
 				"path": "./textmate/go.tmLanguage.json"
 			},
 			{
-				"language": "cpp",
-				"scopeName": "source.cpp",
-				"path": "./textmate/cpp.tmLanguage.json"
-			},
-			{
 				"language": "ruby",
 				"scopeName": "source.ruby",
 				"path": "./textmate/ruby.tmLanguage.json"

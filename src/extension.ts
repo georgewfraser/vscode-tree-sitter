@@ -7,7 +7,6 @@ import * as colors from './colors'
 // Be sure to declare the language in package.json and include a minimalist grammar.
 const languages: {[id: string]: {module: string, color: colors.ColorFunction, parser?: Parser}} = {
 	'go': {module: 'tree-sitter-go', color: colors.colorGo},
-	'cpp': {module: 'tree-sitter-cpp', color: colors.colorCpp},
 	'rust': {module: 'tree-sitter-rust', color: colors.colorRust},
 	'ruby': {module: 'tree-sitter-ruby', color: colors.colorRuby},
 	'typescript': {module: 'tree-sitter-typescript', color: colors.colorTypescript},

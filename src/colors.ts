@@ -412,28 +412,6 @@ export function colorRust(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 	return colors
 }
 
-export function colorCpp(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent && x.parent.type == 'function_declarator') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'scoped_identifier' && x.parent.parent && x.parent.parent.type == 'function_declarator') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'type_identifier') {
-			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'field_identifier') {
-			colors.push([x, 'variable'])
-		}
-		for (const child of x.children) {
-			scan(child)
-		}
-	}
-	scan(x)
-
-	return colors
-}
-
 function isVisible(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
 	for (const {start, end} of visibleRanges) {
 		const overlap = x.startPosition.row <= end+1 && start-1 <= x.endPosition.row
