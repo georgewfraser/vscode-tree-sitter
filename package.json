@@ -109,7 +109,6 @@
 		"vscode": "^1.1.25"
 	},
 	"dependencies": {
-		"cson": "^5.1.0",
 		"jsonc-parser": "^2.1.0",
 		"tar": ">=4.4.2",
 		"web-tree-sitter": "^0.15.6"
