@@ -12,6 +12,7 @@ const languages: {[id: string]: {module: string, color: colors.ColorFunction, pa
 	'ruby': {module: 'tree-sitter-ruby', color: colors.colorRuby},
 	'verilog': {module: 'tree-sitter-verilog', color: colors.colorVerilog},
 	'typescript': {module: 'tree-sitter-typescript', color: colors.colorTypescript},
+	// TODO there is a separate JS grammar now
 	'javascript': {module: 'tree-sitter-javascript', color: colors.colorTypescript},
 }
 
@@ -140,16 +141,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (t == null) return
 		const language = languages[editor.document.languageId]
 		if (language == null) return
-		const scopes = language.color(t.rootNode, visibleLines(editor))
-		const nodes = new Map<string, Parser.SyntaxNode[]>()
-		for (const [x, scope] of scopes) {
-			if (!nodes.has(scope)) nodes.set(scope, [])
-			nodes.get(scope)!.push(x)
-		}
-		for (const scope of nodes.keys()) {
+		const scopes = language.color(t, visibleLines(editor))
+		for (const scope of scopes.keys()) {
 			const dec = decoration(scope)
 			if (dec) {
-				const ranges = nodes.get(scope)!.map(range)
+				const ranges = scopes.get(scope)!.map(range)
 				editor.setDecorations(dec, ranges)
 			} else if (!warnedScopes.has(scope)) {
 				console.warn(scope, 'was not found in the current theme')
@@ -157,7 +153,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		for (const scope of decorationCache.keys()) {
-			if (!nodes.has(scope)) {
+			if (!scopes.has(scope)) {
 				const dec = decorationCache.get(scope)!
 				editor.setDecorations(dec, [])
 			}
@@ -199,8 +195,8 @@ function visibleLines(editor: vscode.TextEditor) {
 	})
 }
 
-function range(x: Parser.SyntaxNode): vscode.Range {
-	return new vscode.Range(x.startPosition.row, x.startPosition.column, x.endPosition.row, x.endPosition.column)
+function range(x: colors.Range): vscode.Range {
+	return new vscode.Range(x.start.row, x.start.column, x.end.row, x.end.column)
 }
 
 // this method is called when your extension is deactivated

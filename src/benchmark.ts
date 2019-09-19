@@ -15,7 +15,7 @@ async function benchmarkGo() {
     const tree = parser.parse(text)
     for (let i = 0; i < 10; i++) {
         console.time('colorGo')
-        colors.colorGo(tree.rootNode, [{start: 0, end: tree.rootNode.endPosition.row}])
+        colors.colorGo(tree, [{start: 0, end: tree.rootNode.endPosition.row}])
         console.timeEnd('colorGo')
     }
 }

@@ -225,8 +225,8 @@ const rustTests: TestCase[] = [
         ['Bar', 'entity.name.type',]
     ],
     [
-        `let x = Foo::Bar(x)`, 
-        ['Foo', 'entity.name.type'], ['Bar', {not:'entity.name.type'}]
+        `let x = Foo::bar(x)`, 
+        ['Foo', 'entity.name.type'], ['bar', {not:'entity.name.type'}]
     ],
     [
         `impl Foo {
@@ -293,14 +293,18 @@ async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunc
     parser.setLanguage(lang)
     for (const [src, ...expect] of testCases) {
         const tree = parser.parse(src)
-        const foundList = color(tree.rootNode, [{start: 0, end: tree.rootNode.endPosition.row}])
-        const foundMap = new Map<string, Set<string>>()
-        for (const [node, scope] of foundList) {
-            const code = node.text
-            if (!foundMap.has(code)) {
-                foundMap.set(code, new Set<string>())
+        const scope2ranges = color(tree, [{start: 0, end: tree.rootNode.endPosition.row}])
+        const code2scopes = new Map<string, Set<string>>()
+        for (const [scope, ranges] of scope2ranges) {
+            for (const range of ranges) {
+                const start = index(src, range.start)
+                const end = index(src, range.end)
+                const code = src.substring(start, end)
+                if (!code2scopes.has(code)) {
+                    code2scopes.set(code, new Set<string>())
+                }
+                code2scopes.get(code)!.add(scope)
             }
-            foundMap.get(code)!.add(scope)
         }
         function printSrcAndTree() {
             console.error('Source:\t' + src)
@@ -309,12 +313,12 @@ async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunc
         for (const [code, assert] of expect) {
             if (typeof assert == 'string') {
                 const scope = assert
-                if (!foundMap.has(code)) {
-                    console.error(`Error:\tcode (${code}) was not found in (${join(foundMap.keys())})`)
+                if (!code2scopes.has(code)) {
+                    console.error(`Error:\tcode (${code}) was not found in (${join(code2scopes.keys())})`)
                     printSrcAndTree()
                     continue
                 }
-                const foundScopes = foundMap.get(code)!
+                const foundScopes = code2scopes.get(code)!
                 if (!foundScopes.has(scope)) {
                     console.error(`Error:\tscope (${scope}) was not among the scopes for (${code}) (${join(foundScopes.keys())})`)
                     printSrcAndTree()
@@ -322,10 +326,10 @@ async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunc
                 }
             } else {
                 const scope = assert.not
-                if (!foundMap.has(code)) {
+                if (!code2scopes.has(code)) {
                     continue
                 }
-                const foundScopes = foundMap.get(code)!
+                const foundScopes = code2scopes.get(code)!
                 if (foundScopes.has(scope)) {
                     console.error(`Error:\tbanned scope (${scope}) was among the scopes for (${code}) (${join(foundScopes.keys())})`)
                     printSrcAndTree()
@@ -334,6 +338,22 @@ async function test(testCases: TestCase[], wasm: string, color: colors.ColorFunc
             }
         }
     }
+}
+function index(code: string, point: Parser.Point): number {
+    let row = 0
+    let column = 0
+    for (let i = 0; i < code.length; i++) {
+        if (row == point.row && column == point.column) {
+            return i
+        }
+        if (code[i] == '\n') {
+            row++
+            column = 0
+        } else {
+            column++
+        }
+    }
+    return code.length
 }
 function join(strings: IterableIterator<string>) {
     var result = ''

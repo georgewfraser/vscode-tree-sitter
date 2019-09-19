@@ -1,8 +1,13 @@
 import * as Parser from 'web-tree-sitter'
 
-export type ColorFunction = (x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) => [Parser.SyntaxNode, string][]
+export type Range = {start: Parser.Point, end: Parser.Point}
+export type ColorFunction = (x: Parser.Tree, visibleRanges: {start: number, end: number}[]) => Map<string, Range[]>
 
-export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
+export function colorGo(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	const functions: Range[] = []
+	const types: Range[] = []
+	const variables: Range[] = []
+	const underlines: Range[] = []
 	// Guess package names based on paths
 	var packages: {[id: string]: boolean} = {}
 	function scanImport(x: Parser.SyntaxNode) {
@@ -89,10 +94,9 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			return this.parent == null
 		}
 	}
-	const colors: [Parser.SyntaxNode, string][] = []
 	const rootScope = new Scope(null)
 	function scanSourceFile() {
-		for (const top of root.namedChildren) {
+		for (const top of root.rootNode.namedChildren) {
 			scanTopLevelDeclaration(top)
 		}
 	}
@@ -123,7 +127,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			switch (child.type) {
 				case 'identifier':
 					if (isVisible(child, visibleRanges)) {
-						colors.push([child, 'entity.name.function'])
+						functions.push({start: child.startPosition, end: child.endPosition});
 					}
 					break
 				default:
@@ -137,7 +141,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 				switch (child.type) {
 					case 'identifier':
 						if (isVisible(child, visibleRanges)) {
-							colors.push([child, 'variable'])
+							variables.push({start: child.startPosition, end: child.endPosition});
 						}
 						break
 					default:
@@ -154,7 +158,7 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 	function scanExpr(x: Parser.SyntaxNode, scope: Scope) {
 		switch (x.type) {
 			case 'ERROR':
-				return;
+				return
 			case 'func_literal':
 			case 'block':
 			case 'expression_case_clause':
@@ -207,19 +211,19 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 			case 'identifier':
 				scope.referenceLocal(x)
 				if (isVisible(x, visibleRanges) && scope.isUnknown(x.text)) {
-					colors.push([x, 'variable'])
+					variables.push({start: x.startPosition, end: x.endPosition});
 				}
 				return
 			case 'selector_expression':
 				if (isVisible(x, visibleRanges) && scope.isPackage(x.firstChild!.text)) {
-					colors.push([x.lastChild!, 'variable'])
+					variables.push({start: x.lastChild!.startPosition, end: x.lastChild!.endPosition})
 				}
 				scanExpr(x.firstChild!, scope)
 				scanExpr(x.lastChild!, scope)
 				return
 			case 'type_identifier':
 				if (isVisible(x, visibleRanges)) {
-					colors.push([x, 'entity.name.type'])
+					types.push({start: x.startPosition, end: x.endPosition})
 				}
 				return
 		}
@@ -231,13 +235,13 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 		switch (x.type) {
 			case 'identifier':
 				if (isVisible(x, visibleRanges) && scope.isUnknown(x.text)) {
-					colors.push([x, 'entity.name.function'])
+					functions.push({start: x.startPosition, end: x.endPosition})
 				}
 				scope.referenceLocal(x)
 				return
 			case 'selector_expression':
 				if (isVisible(x, visibleRanges) && scope.isPackage(x.firstChild!.text)) {
-					colors.push([x.lastChild!, 'entity.name.function'])
+					functions.push({start: x.lastChild!.startPosition, end: x.lastChild!.endPosition})
 				}
 				scanExpr(x.firstChild!, scope)
 				scanExpr(x.lastChild!, scope)
@@ -252,56 +256,132 @@ export function colorGo(root: Parser.SyntaxNode, visibleRanges: {start: number, 
 	scanSourceFile()
 	for (const scope of allScopes) {
 		for (const local of scope.modifiedLocals()) {
-			colors.push([local, 'markup.underline'])
+			underlines.push({start: local.startPosition, end: local.endPosition})
 		}
 	}
+
+	return new Map([
+		['entity.name.function', functions],
+		['entity.name.type', types],
+		['variable', variables],
+		['markup.underline', underlines],
+	])
+}
+
+export function colorTypescript(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	const functions: Range[] = []
+	const types: Range[] = []
+	const variables: Range[] = []
+	const keywords: Range[] = []
+	let visitedChildren = false
+	let cursor = root.walk()
+	let parents = [cursor.nodeType]
+	while (true) {
+		// Advance cursor
+		if (visitedChildren) {
+			if (cursor.gotoNextSibling()) {
+				visitedChildren = false
+			} else if (cursor.gotoParent()) {
+				parents.pop()
+				visitedChildren = true
+				continue
+			} else {
+				break
+			}
+		} else {
+			const parent = cursor.nodeType
+			if (cursor.gotoFirstChild()) {
+				parents.push(parent)
+				visitedChildren = false
+			} else {
+				visitedChildren = true
+				continue
+			}
+		}
+		// Skip nodes that are not visible
+		if (!visible(cursor, visibleRanges)) {
+			visitedChildren = true
+			continue
+		}
+		// Color tokens
+		const parent = parents[parents.length - 1]
+		switch (cursor.nodeType) {
+			case 'identifier':
+				if (parent == 'function') {
+					functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				}
+				break
+			case 'type_identifier':
+			case 'predefined_type':
+				types.push({start: cursor.startPosition, end: cursor.endPosition})
+				break
+			case 'property_identifier':
+				variables.push({start: cursor.startPosition, end: cursor.endPosition})
+				break
+			case 'method_definition':
+				const firstChild = cursor.currentNode().firstChild!
+				switch (firstChild.text) {
+					case 'get':
+					case 'set':
+						keywords.push({start: firstChild.startPosition, end: firstChild.endPosition})
+				}
+				break
+		}
+	}
+	cursor.delete()
+	return new Map([
+		['entity.name.function', functions],
+		['entity.name.type', types],
+		['variable', variables],
+		['keyword', keywords],
+	])
+}
+
+export function colorVerilog(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	const cursor = root.walk()
+	const colors = new Map<string, Range[]>()
+	let visitedChildren = false
+	while (true) {
+		// Advance cursor
+		if (visitedChildren) {
+			if (cursor.gotoNextSibling()) {
+				visitedChildren = false
+			} else if (cursor.gotoParent()) {
+				visitedChildren = true
+				continue
+			} else {
+				break
+			}
+		} else {
+			if (cursor.gotoFirstChild()) {
+				visitedChildren = false
+			} else {
+				visitedChildren = true
+				continue
+			}
+		}
+		// Skip nodes that are not visible
+		if (!visible(cursor, visibleRanges)) {
+			visitedChildren = true
+			continue
+		}
+		// Color tokens
+		const type = cursor.nodeType
+		if (type in verilogScopes) {
+			const scope = verilogScopes[type]
+			if (!colors.has(scope)) {
+				colors.set(scope, [])
+			}
+			colors.get(scope)!.push({start: cursor.startPosition, end: cursor.endPosition})
+		}
+	}
+	cursor.delete()
 
 	return colors
 }
 
-export function colorTypescript(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent && x.parent.type == 'function') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'type_identifier' || x.type == 'predefined_type') {
-			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'property_identifier') {
-			colors.push([x, 'variable'])
-		} else if (x.type == 'method_definition' && ['get', 'set'].includes(x.firstChild!.text)) {
-			colors.push([x.firstChild!, 'keyword'])
-		}
-		for (const child of x.children) {
-			scan(child)
-		}
-	}
-	scan(x)
-
-	return colors
-}
-
-export function colorVerilog(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		if (x.type in verilogMap) {
-			colors.push([x, verilogMap[x.type]])
-		}
-		for (const child of x.children) {
-			scan(child)
-		}
-	}
-	scan(x)
-
-	return colors
-}
-
-export interface VerilogMap {
-    [key: string] : string;
-} 
-
-const verilogMap: VerilogMap = {
+// TODO remove keywords that are handled just fine by the textmate grammar.
+const verilogScopes: {[key: string]: string} = {
 	"ERROR": "invalid",
 	"MISSING": "invalid",
 	"include_compiler_directive": "keyword.control",
@@ -355,7 +435,7 @@ const verilogMap: VerilogMap = {
 	"edge_identifier": "variable",
 	"or": "keyword",
 	",": "keyword",
-	";": "keyword",
+	"": "keyword",
 	"input": "variable",
 	"output": "variable",
 	"inout": "variable",
@@ -418,73 +498,135 @@ const verilogMap: VerilogMap = {
 	"<->": "keyword"
 }
 
-export function colorRuby(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	const controlKeywords = ['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block']
-	const classKeywords = ['include', 'prepend', 'extend', 'private', 'protected', 'public', 'attr_reader', 'attr_writer', 'attr_accessor', 'attr', 'private_class_method', 'public_class_method']
-	const moduleKeywords = ['module_function', ...classKeywords]
-	function isChildOf(x: Parser.SyntaxNode, parent: string) {
+export function colorRuby(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	const controlKeywords = new Set(['while', 'until', 'if', 'unless', 'for', 'begin', 'elsif', 'else', 'ensure', 'when', 'case', 'do_block'])
+	const classKeywords = new Set(['include', 'prepend', 'extend', 'private', 'protected', 'public', 'attr_reader', 'attr_writer', 'attr_accessor', 'attr', 'private_class_method', 'public_class_method'])
+	const moduleKeywords = new Set(['module_function', ...classKeywords])
+	const functions: Range[] = []
+	const types: Range[] = []
+	const variables: Range[] = []
+	const keywords: Range[] = []
+	const controls: Range[] = []
+	const constants: Range[] = []
+	let visitedChildren = false
+	let cursor = root.walk()
+	let parents = [cursor.nodeType]
+	function isChildOf(ancestor: string) {
+		const parent = parents[parents.length - 1]
+		const grandparent = parents[parents.length - 2]
 		// class Foo; bar; end
-		if (x.parent && x.parent.type == parent) {
+		if (parent == ancestor) {
 			return true
 		}
 		// class Foo; bar :thing; end
-		if (x.parent && x.parent.type == 'method_call' && x.parent.parent && x.parent.parent.type == parent) {
+		if (parent == 'method_call' && grandparent == ancestor) {
 			return true
 		}
 		return false
 	}
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		switch (x.type) {
+	while (true) {
+		// Advance cursor
+		if (visitedChildren) {
+			if (cursor.gotoNextSibling()) {
+				visitedChildren = false
+			} else if (cursor.gotoParent()) {
+				parents.pop()
+				visitedChildren = true
+				continue
+			} else {
+				break
+			}
+		} else {
+			const parent = cursor.nodeType
+			if (cursor.gotoFirstChild()) {
+				parents.push(parent)
+				visitedChildren = false
+			} else {
+				visitedChildren = true
+				continue
+			}
+		}
+		// Skip nodes that are not visible
+		if (!visible(cursor, visibleRanges)) {
+			visitedChildren = true
+			continue
+		}
+		// Color tokens
+		const parent = parents[parents.length - 1]
+		switch (cursor.nodeType) {
 			case 'method':
-				colors.push([x.children[1]!, 'entity.name.function'])
+				cursor.gotoFirstChild()
+				cursor.gotoNextSibling()
+				functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				cursor.gotoParent()
 				break
 			case 'singleton_method':
-				colors.push([x.children[3], 'entity.name.function'])
+				cursor.gotoFirstChild()
+				cursor.gotoNextSibling()
+				cursor.gotoNextSibling()
+				cursor.gotoNextSibling()
+				functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				cursor.gotoParent()
 				break
 			case 'instance_variable':
 			case 'class_variable':
 			case 'global_variable':
-				colors.push([x, 'variable'])
+				variables.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
 			case 'end':
-				if (controlKeywords.includes(x.parent!.type)) {
-					colors.push([x, 'keyword.control'])
+				if (controlKeywords.has(parent)) {
+					controls.push({start: cursor.startPosition, end: cursor.endPosition})
 				} else {
-					colors.push([x, 'keyword'])
+					keywords.push({start: cursor.startPosition, end: cursor.endPosition})
 				}
 				break
 			case 'constant':
-				colors.push([x, 'entity.name.type'])
+				types.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
 			case 'symbol':
-				colors.push([x, 'constant.language'])
+				constants.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
-			case 'identifier':
-				if (classKeywords.includes(x.text) && isChildOf(x, 'class')) {
-					colors.push([x, 'keyword'])
-				} else if (moduleKeywords.includes(x.text) && isChildOf(x, 'module')) {
-					colors.push([x, 'keyword'])
-				} else if (x.parent!.type == 'method_call' && x.parent!.firstChild!.equals(x)) {
-					colors.push([x, 'entity.name.function'])
-				} else if (x.parent!.type == 'call' && x.parent!.lastChild!.equals(x)) {
-					colors.push([x, 'entity.name.function'])
+			case 'method_call': {
+				cursor.gotoFirstChild()
+				const text = cursor.currentNode().text
+				if (!moduleKeywords.has(text)) {
+					functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				}
+				cursor.gotoParent()
+				break
+			}
+			case 'call':
+				cursor.gotoFirstChild()
+				cursor.gotoNextSibling()
+				cursor.gotoNextSibling()
+				functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				cursor.gotoParent()
+				break
+			case 'identifier': {
+				const text = cursor.currentNode().text
+				if (classKeywords.has(text) && isChildOf('class')) {
+					keywords.push({start: cursor.startPosition, end: cursor.endPosition})
+				} else if (moduleKeywords.has(text) && isChildOf('module')) {
+					keywords.push({start: cursor.startPosition, end: cursor.endPosition})
 				}
 				break
-		}
-		for (const child of x.children) {
-			scan(child)
+			}
 		}
 	}
-	scan(x)
-
-	return colors
+	cursor.delete()
+	return new Map([
+		['entity.name.function', functions],
+		['entity.name.type', types],
+		['variable', variables],
+		['keyword', keywords],
+		['keyword.control', controls],
+		['constant.language', constants],
+	])
 }
 
-export function colorRust(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	function looksLikeType(id: string) {
+export function colorRust(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	function looksLikeType(id: string|undefined) {
+		if (id == null) return false
 		if (id.length == 0) return false
 		if (id[0] != id[0].toUpperCase()) return false
 		for (const c of id) {
@@ -492,88 +634,142 @@ export function colorRust(x: Parser.SyntaxNode, visibleRanges: {start: number, e
 		}
 		return false
 	}
-	function scanUse(x: Parser.SyntaxNode) {
-		if (x.type == 'identifier' && looksLikeType(x.text)) {
-			colors.push([x, 'entity.name.type'])
+	const functions: Range[] = []
+	const types: Range[] = []
+	const variables: Range[] = []
+	const keywords: Range[] = []
+	let visitedChildren = false
+	let cursor = root.walk()
+	let parents = [cursor.nodeType]
+	while (true) {
+		// Advance cursor
+		if (visitedChildren) {
+			if (cursor.gotoNextSibling()) {
+				visitedChildren = false
+			} else if (cursor.gotoParent()) {
+				parents.pop()
+				visitedChildren = true
+				continue
+			} else {
+				break
+			}
+		} else {
+			const parent = cursor.nodeType
+			if (cursor.gotoFirstChild()) {
+				parents.push(parent)
+				visitedChildren = false
+			} else {
+				visitedChildren = true
+				continue
+			}
 		}
-		for (const child of x.children) {
-			scanUse(child)
+		// Skip nodes that are not visible
+		if (!visible(cursor, visibleRanges)) {
+			visitedChildren = true
+			continue
 		}
-	}
-	function scanQualifier(x: Parser.SyntaxNode) {
-		if (x.type == 'identifier' && looksLikeType(x.text)) {
-			colors.push([x, 'entity.name.type'])
-		}
-		for (const child of x.children) {
-			scanQualifier(child)
-		}
-	}
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		switch (x.type) {
-			case 'scoped_identifier':
-				for (const child of x.children) {
-					if (!child.equals(x.lastChild!)) {
-						scanQualifier(child)
-					}
-				}
-				return
+		// Color tokens
+		const parent = parents[parents.length - 1]
+		const grandparent = parents[parents.length - 2]
+		switch (cursor.nodeType) {
 			case 'identifier':
-				if (x.parent!.type == 'function_item') {
-					if (x.parent!.parent!.type == 'declaration_list') {
-						colors.push([x, 'variable'])
-					} else {
-						colors.push([x, 'entity.name.function'])
-					}
-				} else if (x.parent!.type == 'scoped_identifier' && x.parent!.parent!.type == 'function_declarator') {
-					colors.push([x, 'entity.name.function'])
+				if (looksLikeType(cursor.currentNode().text)) {
+					types.push({start: cursor.startPosition, end: cursor.endPosition})
+				} else if (parent == 'function_item' && grandparent == 'declaration_list') {
+					variables.push({start: cursor.startPosition, end: cursor.endPosition})
+				} else if (parent == 'function_item') {
+					functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				} else if (parent == 'scoped_identifier' && grandparent == 'function_declarator') {
+					functions.push({start: cursor.startPosition, end: cursor.endPosition})
 				}
-				return
-			case 'use_declaration':
-				scanUse(x)
-				return
+				break
 			case 'type_identifier':
 			case 'primitive_type':
-				colors.push([x, 'entity.name.type'])
+				types.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
 			case 'field_identifier':
-				colors.push([x, 'variable'])
+				variables.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
 		}
-		for (const child of x.children) {
-			scan(child)
-		}
 	}
-	scan(x)
-
-	return colors
+	cursor.delete()
+	return new Map([
+		['entity.name.function', functions],
+		['entity.name.type', types],
+		['variable', variables],
+		['keyword', keywords],
+	])
 }
 
-export function colorCpp(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
-	const colors: [Parser.SyntaxNode, string][] = []
-	function scan(x: Parser.SyntaxNode) {
-		if (!isVisible(x, visibleRanges)) return
-		if (x.type == 'identifier' && x.parent && x.parent.type == 'function_declarator') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'identifier' && x.parent && x.parent.type == 'scoped_identifier' && x.parent.parent && x.parent.parent.type == 'function_declarator') {
-			colors.push([x, 'entity.name.function'])
-		} else if (x.type == 'type_identifier') {
-			colors.push([x, 'entity.name.type'])
-		} else if (x.type == 'field_identifier') {
-			colors.push([x, 'variable'])
+export function colorCpp(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
+	const functions: Range[] = []
+	const types: Range[] = []
+	const variables: Range[] = []
+	let visitedChildren = false
+	let cursor = root.walk()
+	let parents = [cursor.nodeType]
+	while (true) {
+		// Advance cursor
+		if (visitedChildren) {
+			if (cursor.gotoNextSibling()) {
+				visitedChildren = false
+			} else if (cursor.gotoParent()) {
+				parents.pop()
+				visitedChildren = true
+				continue
+			} else {
+				break
+			}
+		} else {
+			const parent = cursor.nodeType
+			if (cursor.gotoFirstChild()) {
+				parents.push(parent)
+				visitedChildren = false
+			} else {
+				visitedChildren = true
+				continue
+			}
 		}
-		for (const child of x.children) {
-			scan(child)
+		// Skip nodes that are not visible
+		if (!visible(cursor, visibleRanges)) {
+			visitedChildren = true
+			continue
+		}
+		// Color tokens
+		const parent = parents[parents.length - 1]
+		const grandparent = parents[parents.length - 2]
+		switch (cursor.nodeType) {
+			case 'identifier':
+				if (parent == 'function_declarator' || parent == 'scoped_identifier' && grandparent == 'function_declarator') {
+					functions.push({start: cursor.startPosition, end: cursor.endPosition})
+				}
+				break
+			case 'type_identifier':
+				types.push({start: cursor.startPosition, end: cursor.endPosition})
+				break
+			case 'field_identifier':
+				variables.push({start: cursor.startPosition, end: cursor.endPosition})
+				break
 		}
 	}
-	scan(x)
-
-	return colors
+	cursor.delete()
+	return new Map([
+		['entity.name.function', functions],
+		['entity.name.type', types],
+		['variable', variables],
+	])
 }
 
 function isVisible(x: Parser.SyntaxNode, visibleRanges: {start: number, end: number}[]) {
 	for (const {start, end} of visibleRanges) {
 		const overlap = x.startPosition.row <= end+1 && start-1 <= x.endPosition.row
+		if (overlap) return true
+	}
+	return false
+}
+function visible(x: Parser.TreeCursor, visibleRanges: { start: number, end: number }[]) {
+	for (const { start, end } of visibleRanges) {
+		const overlap = x.startPosition.row <= end + 1 && start - 1 <= x.endPosition.row
 		if (overlap) return true
 	}
 	return false
