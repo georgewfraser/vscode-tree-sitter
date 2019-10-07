@@ -11,6 +11,7 @@
 		"url": "https://github.com/georgewfraser/vscode-tree-sitter"
 	},
 	"license": "MIT",
+	"extensionKind": "ui",
 	"engines": {
 		"vscode": "^1.34.0"
 	},
