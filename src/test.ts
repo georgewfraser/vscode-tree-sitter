@@ -142,6 +142,21 @@ const goTests: TestCase[] = [
         }`,
         ['a', {not:'variable'}]
     ],
+    [
+        `package p
+        type Foo interface {
+            foo(i int)
+        }`,
+        ['i', {not: 'variable'}]
+    ],
+    [
+        `package p
+        type Foo interface {
+            foo(i int)
+            bar(i int)
+        }`,
+        ['i', {not: 'markup.underline'}]
+    ],
 ]
 test(goTests, 'parsers/tree-sitter-go.wasm', colors.colorGo)
 

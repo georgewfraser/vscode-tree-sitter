@@ -160,6 +160,7 @@ export function colorGo(root: Parser.Tree, visibleRanges: {start: number, end: n
 			case 'ERROR':
 				return
 			case 'func_literal':
+			case 'method_spec':
 			case 'block':
 			case 'expression_case_clause':
 			case 'type_case_clause':
