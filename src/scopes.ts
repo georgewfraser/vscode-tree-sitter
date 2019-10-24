@@ -82,19 +82,16 @@ async function loadThemeFile(themePath: string) {
     }
 }
 
-function mergeRuleSettings(defaultRule: TextMateRuleSettings, override: TextMateRuleSettings): TextMateRuleSettings {
-    const mergedRule = defaultRule;
-    if (override.background) {
-        mergedRule.background = override.background
-    }
-    if (override.foreground) {
-        mergedRule.foreground = override.foreground
-    }
-    if (override.background) {
-        mergedRule.fontStyle = override.fontStyle
-    }
+function mergeRuleSettings(defaultSetting: TextMateRuleSettings, override: TextMateRuleSettings): TextMateRuleSettings {
+    const mergedRule = defaultSetting;
+
+    mergedRule.background = override.background || defaultSetting.background
+    mergedRule.foreground = override.foreground || defaultSetting.foreground
+    mergedRule.fontStyle = override.fontStyle || defaultSetting.foreground;
+
     return mergedRule;
 }
+
 
 function loadColors(textMateRules: TextMateRule[]): void {
     for (const rule of textMateRules) {
