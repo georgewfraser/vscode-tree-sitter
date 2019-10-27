@@ -40,7 +40,7 @@ export async function load() {
 }
 
 // Find current theme on disk
-async function function loadThemeNamed(themeName: string) {
+async function loadThemeNamed(themeName: string) {
 
      const themePaths = vscode.extensions.all
          .filter(extension => extension.extensionKind === vscode.ExtensionKind.UI)
