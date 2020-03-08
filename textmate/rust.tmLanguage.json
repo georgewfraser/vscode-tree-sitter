@@ -103,12 +103,12 @@
 			"patterns": [
 				{
 					"comment": "Regular keywords",
-					"match": "\\b(as|'static|Self|abstract|box|const|crate|dyn|enum|extern|final|fn|impl|let|macro|mod|mut|override|priv|pub|ref|self|static|struct|super|trait|type|union|unsized|use|virtual|where)\\b",
+					"match": "\\b(async|as|'static|Self|abstract|box|const|crate|dyn|enum|extern|final|fn|impl|let|macro|mod|mut|override|priv|pub|ref|self|static|struct|super|trait|type|union|unsized|use|virtual|where)\\b",
 					"name": "keyword.other.rust"
 				},
 				{
 					"comment": "Control keywords",
-					"match": "\\b(async|await|become|break|continue|do|else|for|if|in|loop|match|move|return|try|typeof|unsafe|while|yield)\\b",
+					"match": "\\b(await|become|break|continue|do|else|for|if|in|loop|match|move|return|try|typeof|unsafe|while|yield)\\b",
 					"name": "keyword.control.rust"
 				},
 				{
