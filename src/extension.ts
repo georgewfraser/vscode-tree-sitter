@@ -10,7 +10,6 @@ const languages: {[id: string]: {module: string, color: colors.ColorFunction, pa
 	'cpp': {module: 'tree-sitter-cpp', color: colors.colorCpp},
 	'rust': {module: 'tree-sitter-rust', color: colors.colorRust},
 	'ruby': {module: 'tree-sitter-ruby', color: colors.colorRuby},
-	'verilog': {module: 'tree-sitter-verilog', color: colors.colorVerilog},
 	'typescript': {module: 'tree-sitter-typescript', color: colors.colorTypescript},
 	// TODO there is a separate JS grammar now
 	'javascript': {module: 'tree-sitter-javascript', color: colors.colorTypescript},

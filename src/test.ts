@@ -104,6 +104,15 @@ const goTests: TestCase[] = [
     [
         `package p
         func f(a interface{}) {
+            if aa, ok := a.(*type); ok {
+                print(aa)
+            }
+        }`,
+        ['aa', {not:'variable'}]
+    ],
+    [
+        `package p
+        func f(a interface{}) {
             switch aa := a.(type) {
                 case *int:
                     print(aa)

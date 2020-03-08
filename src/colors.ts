@@ -162,11 +162,10 @@ export function colorGo(root: Parser.Tree, visibleRanges: {start: number, end: n
 			case 'func_literal':
 			case 'method_spec':
 			case 'block':
-			case 'expression_case_clause':
-			case 'type_case_clause':
+			case 'expression_case':
+			case 'type_case':
 			case 'for_statement':
 			case 'if_statement':
-			case 'type_switch_statement':
 				scope = new Scope(scope)
 				break
 			case 'parameter_declaration':
@@ -187,9 +186,10 @@ export function colorGo(root: Parser.Tree, visibleRanges: {start: number, end: n
 					}
 				}
 				break
-			case 'type_switch_guard':
-				if (x.firstChild!.type == 'expression_list') {
-					for (const id of x.firstChild!.namedChildren) {
+			case 'type_switch_statement':
+				scope = new Scope(scope)
+				if (x.firstNamedChild!.type == 'expression_list') {
+					for (const id of x.firstNamedChild!.namedChildren) {
 						scope.declareLocal(id.text)
 					}
 				}
@@ -319,7 +319,7 @@ export function colorTypescript(root: Parser.Tree, visibleRanges: {start: number
 			case 'property_identifier':
 				variables.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
-			case 'method_definition':
+			case 'method_definition': 
 				const firstChild = cursor.currentNode().firstChild!
 				switch (firstChild.text) {
 					case 'get':
@@ -327,6 +327,10 @@ export function colorTypescript(root: Parser.Tree, visibleRanges: {start: number
 						keywords.push({start: firstChild.startPosition, end: firstChild.endPosition})
 				}
 				break
+			case 'function_declaration':
+				const functionName = cursor.currentNode().firstNamedChild!
+				functions.push({start: functionName.startPosition, end: functionName.endPosition})
+
 		}
 	}
 	cursor.delete()
@@ -336,167 +340,6 @@ export function colorTypescript(root: Parser.Tree, visibleRanges: {start: number
 		['variable', variables],
 		['keyword', keywords],
 	])
-}
-
-export function colorVerilog(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
-	const cursor = root.walk()
-	const colors = new Map<string, Range[]>()
-	let visitedChildren = false
-	while (true) {
-		// Advance cursor
-		if (visitedChildren) {
-			if (cursor.gotoNextSibling()) {
-				visitedChildren = false
-			} else if (cursor.gotoParent()) {
-				visitedChildren = true
-				continue
-			} else {
-				break
-			}
-		} else {
-			if (cursor.gotoFirstChild()) {
-				visitedChildren = false
-			} else {
-				visitedChildren = true
-				continue
-			}
-		}
-		// Skip nodes that are not visible
-		if (!visible(cursor, visibleRanges)) {
-			visitedChildren = true
-			continue
-		}
-		// Color tokens
-		const type = cursor.nodeType
-		if (type in verilogScopes) {
-			const scope = verilogScopes[type]
-			if (!colors.has(scope)) {
-				colors.set(scope, [])
-			}
-			colors.get(scope)!.push({start: cursor.startPosition, end: cursor.endPosition})
-		}
-	}
-	cursor.delete()
-
-	return colors
-}
-
-// TODO remove keywords that are handled just fine by the textmate grammar.
-const verilogScopes: {[key: string]: string} = {
-	"ERROR": "invalid",
-	"MISSING": "invalid",
-	"include_compiler_directive": "keyword.control",
-	"text_macro_definition": "keyword.control",
-	"text_macro_usage": "keyword.control",
-	"id_directive": "keyword.control",
-	"zero_directive": "keyword.control",
-	"timescale_compiler_directive": "keyword.control",
-	"default_nettype_compiler_directive": "keyword.control",
-	"line_compiler_directive": "keyword.control",
-	"text_macro_identifier": "entity.name.type",
-	"include_compiler_directive_relative": "string",
-	"include_compiler_directive_standard": "string",
-	"macro_text": "string",
-	"time_literal": "string",
-	"translation_unit": "source.verilog",
-	"comment": "comment",
-	"module_keyword": "storage.type.module.verilog",
-	"endmodule": "storage.type.module.verilog",
-	"virtual": "storage.modifier",
-	"protected": "storage.modifier",
-	"name_of_instance": "entity.name.type",
-	"assert": "keyword.control",
-	"assume": "keyword.control",
-	"cover": "keyword.control",
-	"expect": "keyword.control",
-	"property": "keyword.control",
-	"always": "keyword.control",
-	"assign": "keyword.control",
-	"begin": "keyword.control",
-	"end": "keyword.control",
-	"for": "keyword.control",
-	"if": "keyword.control",
-	"else": "keyword.control",
-	"import": "keyword.control",
-	"function": "keyword.control",
-	"endfunction": "keyword.control",
-	"task": "keyword.control",
-	"endtask": "keyword.control",
-	"class": "keyword.control",
-	"endclass": "keyword.control",
-	"typedef": "keyword.control",
-	"return": "keyword.control",
-	"extends": "keyword.control",
-	"void": "keyword.control",
-	"forever": "keyword.control",
-	"generate": "keyword.control",
-	"endgenerate": "keyword.control",
-	"case_keyword": "keyword.control",
-	"endcase": "keyword.control",
-	"edge_identifier": "variable",
-	"or": "keyword",
-	",": "keyword",
-	"": "keyword",
-	"input": "variable",
-	"output": "variable",
-	"inout": "variable",
-	"net_type_identifier": "support.storage.type",
-	"net_type": "support.storage.type",
-	"integer_vector_type": "support.storage.type",
-	"integer_atom_type": "support.storage.type",
-	"string": "support.storage.type",
-	"non_integer_type": "support.storage.type",
-	"genvar": "support.storage.type",
-	"variable_port_type": "support.storage.type",
-	"hierarchical_identifier": "keyword",
-	"parameter": "keyword.other.verilog",
-	"localparam": "keyword.other.verilog",
-	"defparam": "keyword.other.verilog",
-	"integral_number": "constant.numeric",
-	"unbased_unsized_literal": "constant.numeric",
-	"unsigned_number": "constant.numeric",
-	"string_literal": "string.quoted",
-	"system_tf_identifier": "entity.name.function",
-	"module_identifier": "entity.name.function",
-	"function_identifier": "entity.name.function",
-	"task_identifier": "entity.name.function",
-	"preproc_arg": "meta.preprocessor.macro",
-	"simple_text_macro_usage": "meta.preprocessor.macro",
-	"unary_operator": "keyword",
-	"@": "keyword.opeartor",
-	"=": "keyword",
-	".": "keyword",
-	"?": "keyword",
-	":": "keyword",
-	"+": "keyword",
-	"-": "keyword",
-	"*": "keyword",
-	"/": "keyword",
-	"%": "keyword",
-	"==": "keyword",
-	"!=": "keyword",
-	"===": "keyword",
-	"!==": "keyword",
-	"==?": "keyword",
-	"!=?": "keyword",
-	"&&": "keyword",
-	"||": "keyword",
-	"**": "keyword",
-	"<": "keyword",
-	"<=": "keyword",
-	">": "keyword",
-	">=": "keyword",
-	"&": "keyword",
-	"|": "keyword",
-	"^": "keyword",
-	"^~": "keyword",
-	"~^": "keyword",
-	">>": "keyword",
-	"<<": "keyword",
-	">>>": "keyword",
-	"<<<": "keyword",
-	"->": "keyword",
-	"<->": "keyword"
 }
 
 export function colorRuby(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
