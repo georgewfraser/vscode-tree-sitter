@@ -245,14 +245,17 @@ test(rubyTests, 'parsers/tree-sitter-ruby.wasm', colors.colorRuby)
 
 const rustTests: TestCase[] = [
     [
+        // In this context, Bar is a namespace, not a type.
         `use foo::{Bar}`,
-        ['Bar', 'entity.name.type',]
+        ['Bar', {not: 'entity.name.type'},]
     ],
     [
+        // In this context, Foo is a namespace, not a type.
         `let x = Foo::bar(x)`, 
-        ['Foo', 'entity.name.type'], ['bar', {not:'entity.name.type'}]
+        ['Foo', {not: 'entity.name.type'}], ['bar', {not:'entity.name.type'}]
     ],
     [
+        // In this context, Foo is a type.
         `impl Foo {
             pub fn bar() { }
         }`,
@@ -263,6 +266,7 @@ const rustTests: TestCase[] = [
         ['foo', 'entity.name.function']
     ],
     [
+        // In this context, Foo is a type.
         `struct Foo {
             bar: int
         }`,

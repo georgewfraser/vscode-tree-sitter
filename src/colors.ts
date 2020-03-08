@@ -469,15 +469,6 @@ export function colorRuby(root: Parser.Tree, visibleRanges: {start: number, end:
 }
 
 export function colorRust(root: Parser.Tree, visibleRanges: {start: number, end: number}[]) {
-	function looksLikeType(id: string|undefined) {
-		if (id == null) return false
-		if (id.length == 0) return false
-		if (id[0] != id[0].toUpperCase()) return false
-		for (const c of id) {
-			if (c.toLowerCase() == c) return true
-		}
-		return false
-	}
 	const functions: Range[] = []
 	const types: Range[] = []
 	const variables: Range[] = []
@@ -517,9 +508,7 @@ export function colorRust(root: Parser.Tree, visibleRanges: {start: number, end:
 		const grandparent = parents[parents.length - 2]
 		switch (cursor.nodeType) {
 			case 'identifier':
-				if (looksLikeType(cursor.currentNode().text)) {
-					types.push({start: cursor.startPosition, end: cursor.endPosition})
-				} else if (parent == 'function_item' && grandparent == 'declaration_list') {
+				if (parent == 'function_item' && grandparent == 'declaration_list') {
 					variables.push({start: cursor.startPosition, end: cursor.endPosition})
 				} else if (parent == 'function_item') {
 					functions.push({start: cursor.startPosition, end: cursor.endPosition})
@@ -534,6 +523,8 @@ export function colorRust(root: Parser.Tree, visibleRanges: {start: number, end:
 			case 'field_identifier':
 				variables.push({start: cursor.startPosition, end: cursor.endPosition})
 				break
+			case 'use_list':
+
 		}
 	}
 	cursor.delete()
