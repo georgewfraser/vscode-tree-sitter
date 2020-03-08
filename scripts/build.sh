@@ -3,7 +3,7 @@
 set -e
 
 # Build vsix
-vsce package -o build.vsix
+npm run-script build
 
 code --install-extension build.vsix --force
 
