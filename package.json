@@ -73,7 +73,8 @@
 		"test": "npm run compile && node ./out/test",
 		"benchmark": "npm run compile && node ./out/benchmark",
 		"debug": "npm run compile && node --nolazy --inspect-brk=9229 ./out/test",
-		"build": "vsce package -o build.vsix"
+		"build": "vsce package -o build.vsix",
+		"publish": "vsce publish patch"
 	},
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
