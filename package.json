@@ -1,6 +1,6 @@
 {
 	"name": "vscode-tree-sitter",
-	"displayName": "Tree Sitter",
+	"displayName": "Tree Sitter [Deprecated]",
 	"description": "Accurate syntax coloring with tree-sitter",
 	"icon": "tree-sitter-small.png",
 	"version": "0.1.25",
